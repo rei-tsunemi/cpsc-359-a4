@@ -131,6 +131,24 @@ void drawImage(int xD, int yD, Pixel *pixel, short int *image)
 		}
 	}
 }
+
+void drawBlock(int sizeX, int sizeY, int xD, int yD, int clr, PixelBlock *pixel)
+{
+	int i = 0;
+	for (int y = 0; y < sizeY; y++) // image height
+	{
+		for (int x = 0; x < sizeX; x++) // image width
+		{
+			pixel->color = clr;
+			pixel->x = x + xD;
+			pixel->y = y + yD;
+
+			drawPixel(pixel);
+			i++;
+		}
+	}
+}
+
 /*
 	up down left right
 	5  6    7    8
