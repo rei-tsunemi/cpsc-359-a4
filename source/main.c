@@ -132,7 +132,7 @@ void drawImage(int xD, int yD, Pixel *pixel, short int *image)
 	}
 }
 
-void drawBlock(int sizeX, int sizeY, int xD, int yD, int clr, PixelBlock *pixel)
+void drawBlock(int sizeX, int sizeY, int xD, int yD, int clr, Pixel *pixel)
 {
 	int i = 0;
 	for (int y = 0; y < sizeY; y++) // image height
