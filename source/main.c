@@ -1,30 +1,25 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/mman.h>
+#include "framebuffer.h"
 #include <string.h>
 #include <unistd.h>
-#include <sys/mman.h>
+#include <wiringPi.h>
+#include "front.h"
+#include "back.h"
+#include "right.h"
+#include "left.h"
+#include <unistd.h>
+#include "initGPIO.h"
 #include <time.h>
 
-#include "framebuffer.h"
-#include "alien.h"
-#include "home64.h"
-#include <wiringPi.h>
-#include "initGPIO.h"
-/* Definitions */
-
-typedef struct
-{
-	short int color;
-	int x, y;
-} Pixel;
-
-typedef struct
-{
-	int color, x, y;
-} BackGround;
-
-struct fbs framebufferstruct;
-void drawPixel(Pixel *pixel);
+/*CPSC 359
+ * PETER KUCHEL 30008687
+ * REI TSUNEMI 30121202
+ *
+ * ASSIGNMENT 4
+ *
+ * */
 
 #define CLK 11 // clock
 #define LAT 9  // latch
@@ -34,12 +29,26 @@ void drawPixel(Pixel *pixel);
 #define GPCLR0 10 // clear registers
 #define GPLEV0 13 // level registers
 
+#define X_MAX 1920
+#define Y_MAX 1056
+#define BLOCKSIZE = 32
+
 static unsigned int *gpioPtr; // get global gpio pointer
 static int globalButtons[16]; // to store the input value from the buttons / register sample buttons
 
 // GPIO setup macros.
 #define INP_GPIO(g) *(gpioPtr + ((g) / 10)) &= ~(7 << (((g) % 10) * 3)) // set input
 #define OUT_GPIO(g) *(gpioPtr + ((g) / 10)) |= (1 << (((g) % 10) * 3))	// set output
+
+/* Definitions */
+typedef struct
+{
+	short int color;
+	int x, y;
+} Pixel;
+
+struct fbs framebufferstruct;
+void drawPixel(Pixel *pixel);
 
 void Init_GPIO()
 {
@@ -91,6 +100,11 @@ int Read_Data()
 	return (gpioPtr[GPLEV0] >> DAT) & 1;
 }
 
+void Wait(unsigned int waitTime)
+{
+	delayMicroseconds(waitTime); // wait in microseconds
+}
+
 void Read_SNES()
 {
 
@@ -110,18 +124,60 @@ void Read_SNES()
 		Write_Clock(1);					// rising edge,new cycle
 		i++;							// next button
 	}
-
-	// return globalButtons;
 }
 
-void drawImage(int xD, int yD, Pixel *pixel, short int *image)
+/*
+	up down left right
+	5  6    7    8
+*/
+
+void checkGoal(int posX, int posY, int *x, int *y, int *status)
 {
-	// int yd = yD <= 0 ? 700 + yD : yD;
-	int i = 0;
-	for (int y = 0; y < 64; y++) // image height
+	if (((*x >= posX) && (*x <= posX + 64)) && ((*y >= posY) && (*y <= posY + 100)))
 	{
-		for (int x = 0; x < 64; x++) // image width
-		{
+		*status = 0;
+	}
+}
+
+void determineButtonPressed(int i, int *x, int *y, int *status)
+{
+	int mov = 32;
+	if (i == 4)
+		*status = 0;
+	else if (i == 5){
+		if((*y) == 64)
+			(*y) = (*y);	
+		else
+			(*y) -= mov;
+		delayMicroseconds(55000);
+	} else if (i == 6){
+		if((*y) == 1024)
+			(*y) = (*y);
+		else
+			(*y) += mov;
+		delayMicroseconds(55000);
+	} else if (i == 7){
+		if((*x) == 0)
+			(*x) = (*x);
+		else
+			(*x) -= mov;
+		delayMicroseconds(55000);
+	} else if (i == 8){
+		if((*x) == 1888)
+			(*x) = (*x);
+		else
+			(*x) += mov;
+		delayMicroseconds(55000);
+	}
+}
+
+void drawImage(int xD, int yD, int sizeX, int sizeY, Pixel *pixel, short int *image)
+{
+	int i = 0;
+	for (int y = 0; y < sizeX; y++)
+	{ // image height
+		for (int x = 0; x < sizeY; x++)
+		{ // image width
 			pixel->color = image[i];
 			pixel->x = x + xD;
 			pixel->y = y + yD;
@@ -134,60 +190,87 @@ void drawImage(int xD, int yD, Pixel *pixel, short int *image)
 
 void drawBlock(int sizeX, int sizeY, int xD, int yD, int clr, Pixel *pixel)
 {
-	int i = 0;
-	for (int y = 0; y < sizeY; y++) // image height
+	for (int y = 0; y < sizeY; y++) // draw height
 	{
-		for (int x = 0; x < sizeX; x++) // image width
+		for (int x = 0; x < sizeX; x++) // draw width
 		{
 			pixel->color = clr;
 			pixel->x = x + xD;
 			pixel->y = y + yD;
 
 			drawPixel(pixel);
-			i++;
 		}
 	}
 }
 
-/*
-	up down left right
-	5  6    7    8
-*/
-void determineButtonPressed(int i, int *x, int *y, int *status)
+void drawNewScene()
 {
-	int d = 10;
-	if (i == 4)
-		*status = 0;
-	else if (i == 5)
-		// (*y)--;
-		(*y) -= d;
-	else if (i == 6)
-		// (*y)++;
-		(*y) += d;
-	else if (i == 7)
-		// (*x)--;
-		(*x) -= d;
-	else if (i == 8)
-		// (*x)++;
-		(*x) += d;
+	int blockSize = 32;
+	int xSize = 60;
+	int ySize = 33;
+	int sceneColour = 0x00FF;
+	int headerColour = 0xFFFF;
+	Pixel *scenePixel = malloc(sizeof(Pixel));
+	int yOff, xOff;
+	for (int y = 0; y < ySize; y++)
+	{
+		yOff = y * blockSize;
+		for (int x = 0; x < xSize; x++)
+		{
+			xOff = x * blockSize;
+			if(yOff >= 64)
+				drawBlock(blockSize, blockSize, xOff, yOff, sceneColour, scenePixel);
+			else
+				drawBlock(blockSize, blockSize, xOff, yOff, headerColour, scenePixel);
+		}
+	}
+	free(scenePixel);
 }
-void snesDraw(Pixel *pixel, short int *imagePtr, int xStart, int yStart, long int *screenSize)
+
+void repaint(int i, int xD, int yD, Pixel *pixel)
 {
-	int status = 1;
-	int numOfButtons = 16;
-	int xD = xStart;
-	int yD = yStart;
-	int press;
-	int i;
+	int gridDim = 32;
+	if (i == 5)
+	{
+		if ((yD >= 0) && (yD <= Y_MAX))
+			drawBlock(gridDim, gridDim, xD, yD + gridDim, 0x00FF, pixel);
+	}
+	else if (i == 6)
+	{
+		if ((yD >= 0) && (yD <= Y_MAX))
+			drawBlock(gridDim, gridDim, xD, yD - gridDim, 0x00FF, pixel);
+	}
+	else if (i == 7)
+	{
+		if ((xD >= 0) && (xD <= X_MAX))
+			drawBlock(gridDim, gridDim, xD + gridDim, yD, 0x00FF, pixel);
+	}
+	else if (i == 8)
+	{
+		if ((xD >= 0) && (xD <= X_MAX))
+			drawBlock(gridDim, gridDim, xD - gridDim, yD, 0x00FF, pixel);
+	}
+}
+
+
+
+void drawGameState(Pixel *pixel, short int *fnt, short int *bck, short int *rgt, short int *lft, Pixel *block)
+{
+	int status = 1;		   // game status
+	int numOfButtons = 16; // number of buttons on snes
+	int xD = 128;		   // move in x direction
+	int yD = 160;		   // move in y direction
+	int press;			   // for knowing which button was pressed
+	int i;				   // for tracking the buttons
+	int sX = 32;		   // for size of the cart 
+	int sY = 32;
 
 	while (status)
 	{
 		int pressed = 0;
-
 		while (!pressed)
 		{
 			Read_SNES();
-			// buttons = globalButtons;
 			for (i = 1; i <= numOfButtons; i++)
 			{
 				if ((i >= 4 || i <= 8) && *(globalButtons + i) == 0)
@@ -199,75 +282,70 @@ void snesDraw(Pixel *pixel, short int *imagePtr, int xStart, int yStart, long in
 				}
 			}
 		}
-		determineButtonPressed(press, &xD, &yD, &status);
-		// printf("x is %d, y is %d ", xD, yD);
-		if (yD <= 0)
-			yD += 750;
-		else if (yD >= 1000)
-			yD -= 750;
 
-		// memset(framebufferstruct.fptr, 0, *screenSize);
-		drawImage(xD, yD, pixel, imagePtr);
-		printf("x is %d, y is %d ", xD, yD);
+		// delayMicroseconds(100);
+
+		determineButtonPressed(press, &xD, &yD, &status);
+		// determineIsOffMap(&xD, &yD);
+		repaint(press, xD, yD, block);
+		drawBlock(5, 100, 1100, 700, 0xFF00, block); // draws the finish line
+		if (i == 5)
+			drawImage(xD, yD, sX, sY, pixel, bck);
+		else if (i == 6)
+			drawImage(xD, yD, sX, sY, pixel, fnt);
+		else if (i == 7)
+			drawImage(xD, yD, sX, sY, pixel, lft);
+		else if (i == 8)
+			drawImage(xD, yD, sX, sY, pixel, rgt);
+		
+		// drawBlock(32,32, &xD, &yD, 0x0FF0, pixel);
+		checkGoal(1100, 700, &xD, &yD, &status);
 	}
 }
 
-/* main function */
-int main()
-{
-
-	/* initialize gpio + snes*/
-
-	gpioPtr = getGPIOPtr(); // gpio for snes controller
-	Init_GPIO();			// init the clock, latch, data
-	/*
-	up down left right
-	5  6    7    8
-
-	*/
-
-	/* initialize + get FBS */
-
-	framebufferstruct = initFbInfo();
-	long int screenSize = (long int)framebufferstruct.screenSize;
-
-	// int *imagePtr=(int *) alienImage.image_pixels;
-	short int *imagePtr = (short int *)tmpImage.pixel_data;
-	/* initialize a pixel */
-	Pixel *pixel;
-	BackGround *backGround;
-	pixel = malloc(sizeof(Pixel));
-	backGround = malloc(sizeof(BackGround));
-
-	// unsigned int quarter,byte,word;
-	memset(framebufferstruct.fptr, 0, screenSize);
-	printf("screen size: %ld", screenSize);
-	int x = 500;
-	int y = 500;
-	drawImage(x, y, pixel, imagePtr);
-	snesDraw(pixel, imagePtr, x, y, &screenSize);
-
-	/* free pixel's allocated memory */
-	// printf("%ld", screenSize);
-	free(pixel);
-	free(backGround);
-	pixel = NULL;
-	//~ pixel = malloc(sizeof(Pixel));
-	//~ free(pixel);
-
-	/* free up memory*/
-	munmap(framebufferstruct.fptr, framebufferstruct.screenSize); // unmap frame ptr
-	munmap(gpioPtr, 4096);										  // unmap gpio pointer
-	// free(buttons);
-
-	return 0;
-}
-
 /* Draw a pixel */
-
 void drawPixel(Pixel *pixel)
 {
 	long int location = (pixel->x + framebufferstruct.xOff) * (framebufferstruct.bits / 8) +
 						(pixel->y + framebufferstruct.yOff) * framebufferstruct.lineLength;
 	*((unsigned short int *)(framebufferstruct.fptr + location)) = pixel->color;
+}
+
+int main()
+{
+	/* initialize snes contoller*/
+	gpioPtr = getGPIOPtr(); // init the virtual base address
+	Init_GPIO();			// init the clock, latch, data
+
+	/* initialize + get FBS */
+	framebufferstruct = initFbInfo();
+	/* pointers used for cart*/
+	short int *frontPtr = (short int *)gimp_front.pixel_data;
+	short int *backPtr = (short int *)gimp_back.pixel_data;
+	short int *rightPtr = (short int *)gimp_right.pixel_data;
+	short int *leftPtr = (short int *)gimp_left.pixel_data;
+
+	
+	/* initialize a pixel */
+	Pixel *pixel;
+	Pixel *block;
+
+	pixel = malloc(sizeof(Pixel));
+	block = malloc(sizeof(Pixel));
+
+	memset(framebufferstruct.fptr, 0, 1);
+	drawNewScene();
+	
+	// drawImage(100, 100, pixel, imagePtr);
+	drawGameState(pixel, frontPtr, backPtr, rightPtr, leftPtr, block);
+
+	/* free pixel's allocated memory */
+	free(pixel);
+	free(block);
+	pixel = NULL;
+	block = NULL;
+	memset(framebufferstruct.fptr, 0, 1);
+	munmap(framebufferstruct.fptr, framebufferstruct.screenSize);
+
+	return 0;
 }
