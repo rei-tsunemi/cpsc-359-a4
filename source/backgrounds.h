@@ -1,9 +1,32 @@
-
-struct Scene
+/* sprite def*/
+typedef struct
 {
-    int bg[33][60];
+    int xStart;
+    int yStart;
+    int moveSpeed;
+    short int *imgptr_front;
+    short int *imgptr_back;
+    short int *imgptr_right;
+    short int *imgptr_left;
+} Sprite;
+
+struct GoalPost
+{
+    int xSize;
+    int ySize;
+    int colour;
+};
+
+struct GameState
+{
+    int **bg;
+    int gridDim;
     int mariostartx;
     int mariostarty;
+    int winCond;
+    int loseCond;
+    int lives;
+    int score;
 };
 
 int bg1[33][60] =
