@@ -11,6 +11,17 @@
 #include "backgrounds.h"
 #include "sprites.h"
 
+#include "L.h"
+#include "I.h"
+#include "F.h"
+#include "E.h"
+#include "dot.h"
+#include "V.h"
+#include "T.h"
+#include "M.h"
+
+
+
 /*CPSC 359
  * PETER KUCHEL 30008687
  * REI TSUNEMI 30121202
@@ -29,9 +40,11 @@
 
 #define X_MAX 1920
 #define Y_MAX 1056
+#define BLOCKSIZE = 32
 
 static int gridSize = 32;
 static int baseSpeed = 55000;
+
 static unsigned int *gpioPtr; // get global gpio pointer
 static int globalButtons[16]; // to store the input value from the buttons / register sample buttons
 
@@ -161,7 +174,6 @@ void getCartSpeed(int *speed, int *x, int *y, int bg[33][60])
 		// *speed = baseSpeed * 4;
 		*speed = baseSpeed;
 	else
-
 		*speed = baseSpeed;
 }
 
@@ -204,10 +216,10 @@ void determineButtonPressed(int i, int *x, int *y, int *status, int *speed)
 void drawImage(int xD, int yD, int sizeX, int sizeY, Pixel *pixel, short int *image)
 {
 	int i = 0;
-	for (int y = 0; y < sizeX; y++) // image height
-	{
-		for (int x = 0; x < sizeY; x++) // image width
-		{
+	for (int y = 0; y < sizeX; y++)
+	{ // image height
+		for (int x = 0; x < sizeY; x++)
+		{ // image width
 			pixel->color = image[i];
 			pixel->x = x + xD;
 			pixel->y = y + yD;
@@ -231,6 +243,55 @@ void drawBlock(int sizeX, int sizeY, int xD, int yD, int clr, Pixel *pixel)
 			drawPixel(pixel);
 		}
 	}
+}
+
+void drawHeader(){
+	short int *life_Ptr[5];
+	short int *level_Ptr[6];
+	short int *time_Ptr[5];
+	int i;
+	int dim = 64; //dimention of each alphabet
+	int sx = 0;   //starting position for LEVEL:
+	int lx = 704; //starting position for LIFE:
+	int tx = 1472; //starting position for TIME:
+
+	/* array storing all alphabet for level */
+	life_Ptr[0] = (short int *)alp_L.pixel_data;
+	life_Ptr[1] = (short int *)alp_I.pixel_data;
+	life_Ptr[2] = (short int *)alp_F.pixel_data;
+	life_Ptr[3] = (short int *)alp_E.pixel_data;
+	life_Ptr[4] = (short int *)alp_colon.pixel_data;
+
+	/* array storing all alphabet for life */
+	level_Ptr[0] = (short int *)alp_L.pixel_data;
+	level_Ptr[1] = (short int *)alp_E.pixel_data;
+	level_Ptr[2] = (short int *)alp_V.pixel_data;
+	level_Ptr[3] = (short int *)alp_E.pixel_data;
+	level_Ptr[4] = (short int *)alp_L.pixel_data;
+	level_Ptr[5] = (short int *)alp_colon.pixel_data;
+
+	/* array storing all alphabet for time */
+	time_Ptr[0] = (short int *)alp_T.pixel_data;
+	time_Ptr[1] = (short int *)alp_I.pixel_data;
+	time_Ptr[2] = (short int *)alp_M.pixel_data;
+	time_Ptr[3] = (short int *)alp_E.pixel_data;
+	time_Ptr[4] = (short int *)alp_colon.pixel_data;
+
+	Pixel *pix;
+	pix = malloc(sizeof(Pixel));
+
+	for(i = 0; i < 6; i++){
+		drawImage(sx,0,dim,dim,pix,level_Ptr[i]);
+		sx += 64;	
+	}
+	for(i = 0; i < 5; i++){
+		drawImage(lx,0,dim,dim,pix,life_Ptr[i]);
+		drawImage(tx,0,dim,dim,pix,time_Ptr[i]);
+		lx += 64;
+		tx += 64;
+	}
+
+	free(pix);
 }
 
 void drawNewScene(int bg[33][60])
@@ -370,6 +431,7 @@ void determineStage()
 		if (stage == 1)
 		{
 			drawNewScene(bg1);
+			drawHeader();
 			drawGameState(pixel, mario, block, bg1);
 			stage++;
 		}
