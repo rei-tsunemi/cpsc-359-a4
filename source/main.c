@@ -254,18 +254,6 @@ void repaint(int i, int xD, int yD, Pixel *pixel)
 
 
 
-void determineIsOffMap(int *xD, int *yD)
-{
-	if (*yD <= 0)
-		*yD += 1050;
-	else if (*yD >= Y_MAX)
-		*yD -= 1050;
-	else if (*xD <= 0)
-		*xD += 1900;
-	else if (*xD >= X_MAX)
-		*xD -= 1900;
-}
-
 void drawGameState(Pixel *pixel, short int *fnt, short int *bck, short int *rgt, short int *lft, Pixel *block)
 {
 	int status = 1;		   // game status
@@ -347,6 +335,7 @@ int main()
 
 	memset(framebufferstruct.fptr, 0, 1);
 	drawNewScene();
+	
 	// drawImage(100, 100, pixel, imagePtr);
 	drawGameState(pixel, frontPtr, backPtr, rightPtr, leftPtr, block);
 
