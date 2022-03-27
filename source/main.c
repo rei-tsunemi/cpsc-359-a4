@@ -144,34 +144,39 @@ void determineButtonPressed(int i, int *x, int *y, int *status)
 	int mov = 32;
 	if (i == 4)
 		*status = 0;
-	else if (i == 5)
-	{
-		(*y) -= mov;
+	else if (i == 5){
+		if((*y) == 64)
+			(*y) = (*y);	
+		else
+			(*y) -= mov;
 		delayMicroseconds(55000);
-	}
-	else if (i == 6)
-	{
-		(*y) += mov;
+	} else if (i == 6){
+		if((*y) == 1024)
+			(*y) = (*y);
+		else
+			(*y) += mov;
 		delayMicroseconds(55000);
-	}
-	else if (i == 7)
-	{
-		(*x) -= mov;
+	} else if (i == 7){
+		if((*x) == 0)
+			(*x) = (*x);
+		else
+			(*x) -= mov;
 		delayMicroseconds(55000);
-	}
-	else if (i == 8)
-	{
-		(*x) += mov;
+	} else if (i == 8){
+		if((*x) == 1888)
+			(*x) = (*x);
+		else
+			(*x) += mov;
 		delayMicroseconds(55000);
 	}
 }
 
-void drawImage(int xD, int yD, Pixel *pixel, short int *image)
+void drawImage(int xD, int yD, int sizeX, int sizeY, Pixel *pixel, short int *image)
 {
 	int i = 0;
-	for (int y = 0; y < 32; y++)
+	for (int y = 0; y < sizeX; y++)
 	{ // image height
-		for (int x = 0; x < 32; x++)
+		for (int x = 0; x < sizeY; x++)
 		{ // image width
 			pixel->color = image[i];
 			pixel->x = x + xD;
@@ -204,6 +209,7 @@ void drawNewScene()
 	int xSize = 60;
 	int ySize = 33;
 	int sceneColour = 0x00FF;
+	int headerColour = 0xFFFF;
 	Pixel *scenePixel = malloc(sizeof(Pixel));
 	int yOff, xOff;
 	for (int y = 0; y < ySize; y++)
@@ -212,7 +218,10 @@ void drawNewScene()
 		for (int x = 0; x < xSize; x++)
 		{
 			xOff = x * blockSize;
-			drawBlock(blockSize, blockSize, xOff, yOff, sceneColour, scenePixel);
+			if(yOff >= 64)
+				drawBlock(blockSize, blockSize, xOff, yOff, sceneColour, scenePixel);
+			else
+				drawBlock(blockSize, blockSize, xOff, yOff, headerColour, scenePixel);
 		}
 	}
 	free(scenePixel);
@@ -243,6 +252,8 @@ void repaint(int i, int xD, int yD, Pixel *pixel)
 	}
 }
 
+
+
 void determineIsOffMap(int *xD, int *yD)
 {
 	if (*yD <= 0)
@@ -259,10 +270,12 @@ void drawGameState(Pixel *pixel, short int *fnt, short int *bck, short int *rgt,
 {
 	int status = 1;		   // game status
 	int numOfButtons = 16; // number of buttons on snes
-	int xD = 100;		   // move in x direction
-	int yD = 100;		   // move in y direction
+	int xD = 128;		   // move in x direction
+	int yD = 160;		   // move in y direction
 	int press;			   // for knowing which button was pressed
 	int i;				   // for tracking the buttons
+	int sX = 32;		   // for size of the cart 
+	int sY = 32;
 
 	while (status)
 	{
@@ -289,30 +302,20 @@ void drawGameState(Pixel *pixel, short int *fnt, short int *bck, short int *rgt,
 		repaint(press, xD, yD, block);
 		drawBlock(5, 100, 1100, 700, 0xFF00, block); // draws the finish line
 		if (i == 5)
-			drawImage(xD, yD, pixel, bck);
+			drawImage(xD, yD, sX, sY, pixel, bck);
 		else if (i == 6)
-			drawImage(xD, yD, pixel, fnt);
+			drawImage(xD, yD, sX, sY, pixel, fnt);
 		else if (i == 7)
-			drawImage(xD, yD, pixel, lft);
+			drawImage(xD, yD, sX, sY, pixel, lft);
 		else if (i == 8)
-			drawImage(xD, yD, pixel, rgt);
+			drawImage(xD, yD, sX, sY, pixel, rgt);
 		
-
 		// drawBlock(32,32, &xD, &yD, 0x0FF0, pixel);
 		checkGoal(1100, 700, &xD, &yD, &status);
 	}
 }
 
-void fallCliff(int clr, int *x, int *y, int *status)
-{
-	if ((clr == *x) && (clr == *y))
-	{
-		*status = 0;
-	}
-}
-
 /* Draw a pixel */
-
 void drawPixel(Pixel *pixel)
 {
 	long int location = (pixel->x + framebufferstruct.xOff) * (framebufferstruct.bits / 8) +
@@ -328,12 +331,13 @@ int main()
 
 	/* initialize + get FBS */
 	framebufferstruct = initFbInfo();
+	/* pointers used for cart*/
 	short int *frontPtr = (short int *)gimp_front.pixel_data;
 	short int *backPtr = (short int *)gimp_back.pixel_data;
 	short int *rightPtr = (short int *)gimp_right.pixel_data;
 	short int *leftPtr = (short int *)gimp_left.pixel_data;
 
-
+	
 	/* initialize a pixel */
 	Pixel *pixel;
 	Pixel *block;
