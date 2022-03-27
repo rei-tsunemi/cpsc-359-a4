@@ -5,13 +5,14 @@
 #include <string.h>
 #include <unistd.h>
 #include <wiringPi.h>
+#include "initGPIO.h"
+#include <time.h>
+
 #include "front.h"
 #include "back.h"
 #include "right.h"
 #include "left.h"
-#include <unistd.h>
-#include "initGPIO.h"
-#include <time.h>
+#include "backgrounds.h"
 
 /*CPSC 359
  * PETER KUCHEL 30008687
@@ -130,6 +131,18 @@ void Read_SNES()
 	up down left right
 	5  6    7    8
 */
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+int getColour(int num)
+{
+	if (num == 1)
+		return 0x00FF;
+	else if (num == 0)
+		return 0xFFFF;
+	else // num is 2
+		return 0x0000;
+}
 
 void checkGoal(int posX, int posY, int *x, int *y, int *status)
 {
@@ -144,26 +157,33 @@ void determineButtonPressed(int i, int *x, int *y, int *status)
 	int mov = 32;
 	if (i == 4)
 		*status = 0;
-	else if (i == 5){
-		if((*y) == 64)
-			(*y) = (*y);	
+	else if (i == 5)
+	{
+		if ((*y) == 64)
+			(*y) = (*y);
 		else
 			(*y) -= mov;
 		delayMicroseconds(55000);
-	} else if (i == 6){
-		if((*y) == 1024)
+	}
+	else if (i == 6)
+	{
+		if ((*y) == 1024)
 			(*y) = (*y);
 		else
 			(*y) += mov;
 		delayMicroseconds(55000);
-	} else if (i == 7){
-		if((*x) == 0)
+	}
+	else if (i == 7)
+	{
+		if ((*x) == 0)
 			(*x) = (*x);
 		else
 			(*x) -= mov;
 		delayMicroseconds(55000);
-	} else if (i == 8){
-		if((*x) == 1888)
+	}
+	else if (i == 8)
+	{
+		if ((*x) == 1888)
 			(*x) = (*x);
 		else
 			(*x) += mov;
@@ -203,13 +223,11 @@ void drawBlock(int sizeX, int sizeY, int xD, int yD, int clr, Pixel *pixel)
 	}
 }
 
-void drawNewScene()
+void drawNewScene(int bg[33][60])
 {
 	int blockSize = 32;
 	int xSize = 60;
 	int ySize = 33;
-	int sceneColour = 0x00FF;
-	int headerColour = 0xFFFF;
 	Pixel *scenePixel = malloc(sizeof(Pixel));
 	int yOff, xOff;
 	for (int y = 0; y < ySize; y++)
@@ -218,43 +236,47 @@ void drawNewScene()
 		for (int x = 0; x < xSize; x++)
 		{
 			xOff = x * blockSize;
-			if(yOff >= 64)
-				drawBlock(blockSize, blockSize, xOff, yOff, sceneColour, scenePixel);
-			else
-				drawBlock(blockSize, blockSize, xOff, yOff, headerColour, scenePixel);
+			int colour = getColour(bg[y][x]);
+			drawBlock(blockSize, blockSize, xOff, yOff, colour, scenePixel);
 		}
 	}
 	free(scenePixel);
 }
 
-void repaint(int i, int xD, int yD, Pixel *pixel)
+void repaint(int i, int xD, int yD, Pixel *pixel, int bg[33][60])
 {
 	int gridDim = 32;
+	int xPaint = xD;
+	int yPaint = yD;
+	int colour;
+
 	if (i == 5)
 	{
-		if ((yD >= 0) && (yD <= Y_MAX))
-			drawBlock(gridDim, gridDim, xD, yD + gridDim, 0x00FF, pixel);
+		yPaint += gridDim;
 	}
 	else if (i == 6)
 	{
-		if ((yD >= 0) && (yD <= Y_MAX))
-			drawBlock(gridDim, gridDim, xD, yD - gridDim, 0x00FF, pixel);
+		yPaint -= gridDim;
 	}
 	else if (i == 7)
 	{
-		if ((xD >= 0) && (xD <= X_MAX))
-			drawBlock(gridDim, gridDim, xD + gridDim, yD, 0x00FF, pixel);
+		xPaint += gridDim;
 	}
-	else if (i == 8)
+	else
 	{
-		if ((xD >= 0) && (xD <= X_MAX))
-			drawBlock(gridDim, gridDim, xD - gridDim, yD, 0x00FF, pixel);
+		xPaint -= gridDim;
 	}
+	colour = getColour(bg[yPaint / gridDim][xPaint / gridDim]);
+	drawBlock(gridDim, gridDim, xPaint, yPaint, colour, pixel);
 }
 
-
-
-void drawGameState(Pixel *pixel, short int *fnt, short int *bck, short int *rgt, short int *lft, Pixel *block)
+void drawGameState(Pixel *pixel,
+				   short int *fnt,
+				   short int *bck,
+				   short int *rgt,
+				   short int *lft,
+				   Pixel *block,
+				   int bg[33][60])
 {
 	int status = 1;		   // game status
 	int numOfButtons = 16; // number of buttons on snes
@@ -262,7 +284,7 @@ void drawGameState(Pixel *pixel, short int *fnt, short int *bck, short int *rgt,
 	int yD = 160;		   // move in y direction
 	int press;			   // for knowing which button was pressed
 	int i;				   // for tracking the buttons
-	int sX = 32;		   // for size of the cart 
+	int sX = 32;		   // for size of the cart
 	int sY = 32;
 
 	while (status)
@@ -287,7 +309,7 @@ void drawGameState(Pixel *pixel, short int *fnt, short int *bck, short int *rgt,
 
 		determineButtonPressed(press, &xD, &yD, &status);
 		// determineIsOffMap(&xD, &yD);
-		repaint(press, xD, yD, block);
+		repaint(press, xD, yD, block, bg);
 		drawBlock(5, 100, 1100, 700, 0xFF00, block); // draws the finish line
 		if (i == 5)
 			drawImage(xD, yD, sX, sY, pixel, bck);
@@ -297,7 +319,7 @@ void drawGameState(Pixel *pixel, short int *fnt, short int *bck, short int *rgt,
 			drawImage(xD, yD, sX, sY, pixel, lft);
 		else if (i == 8)
 			drawImage(xD, yD, sX, sY, pixel, rgt);
-		
+
 		// drawBlock(32,32, &xD, &yD, 0x0FF0, pixel);
 		checkGoal(1100, 700, &xD, &yD, &status);
 	}
@@ -311,6 +333,46 @@ void drawPixel(Pixel *pixel)
 	*((unsigned short int *)(framebufferstruct.fptr + location)) = pixel->color;
 }
 
+void determineStage()
+{
+	short int *frontPtr = (short int *)cart_front.pixel_data;
+	short int *backPtr = (short int *)cart_back.pixel_data;
+	short int *rightPtr = (short int *)cart_right.pixel_data;
+	short int *leftPtr = (short int *)cart_left.pixel_data;
+
+	int stage = 1;
+	int gameOn = 1;
+
+	/* initialize a pixel */
+	Pixel *pixel;
+	Pixel *block;
+
+	pixel = malloc(sizeof(Pixel));
+	block = malloc(sizeof(Pixel));
+
+	memset(framebufferstruct.fptr, 0, 1);
+	while (gameOn)
+	{
+		if (stage == 1)
+		{
+			drawNewScene(bg1);
+			drawGameState(pixel, frontPtr, backPtr, rightPtr, leftPtr, block, bg1);
+			stage++;
+		}
+		else
+		{
+			gameOn = 0;
+		}
+	}
+	// drawImage(100, 100, pixel, imagePtr);
+
+	/* free pixel's allocated memory */
+	free(pixel);
+	free(block);
+	pixel = NULL;
+	block = NULL;
+}
+
 int main()
 {
 	/* initialize snes contoller*/
@@ -320,30 +382,8 @@ int main()
 	/* initialize + get FBS */
 	framebufferstruct = initFbInfo();
 	/* pointers used for cart*/
-	short int *frontPtr = (short int *)gimp_front.pixel_data;
-	short int *backPtr = (short int *)gimp_back.pixel_data;
-	short int *rightPtr = (short int *)gimp_right.pixel_data;
-	short int *leftPtr = (short int *)gimp_left.pixel_data;
+	determineStage();
 
-	
-	/* initialize a pixel */
-	Pixel *pixel;
-	Pixel *block;
-
-	pixel = malloc(sizeof(Pixel));
-	block = malloc(sizeof(Pixel));
-
-	memset(framebufferstruct.fptr, 0, 1);
-	drawNewScene();
-	
-	// drawImage(100, 100, pixel, imagePtr);
-	drawGameState(pixel, frontPtr, backPtr, rightPtr, leftPtr, block);
-
-	/* free pixel's allocated memory */
-	free(pixel);
-	free(block);
-	pixel = NULL;
-	block = NULL;
 	memset(framebufferstruct.fptr, 0, 1);
 	munmap(framebufferstruct.fptr, framebufferstruct.screenSize);
 
