@@ -20,8 +20,6 @@
 #include "T.h"
 #include "M.h"
 
-
-
 /*CPSC 359
  * PETER KUCHEL 30008687
  * REI TSUNEMI 30121202
@@ -245,15 +243,16 @@ void drawBlock(int sizeX, int sizeY, int xD, int yD, int clr, Pixel *pixel)
 	}
 }
 
-void drawHeader(){
+void drawHeader()
+{
 	short int *life_Ptr[5];
 	short int *level_Ptr[6];
 	short int *time_Ptr[5];
 	int i;
-	int dim = 64; //dimention of each alphabet
-	int sx = 0;   //starting position for LEVEL:
-	int lx = 704; //starting position for LIFE:
-	int tx = 1472; //starting position for TIME:
+	int dim = 64;  // dimention of each alphabet
+	int sx = 0;	   // starting position for LEVEL:
+	int lx = 704;  // starting position for LIFE:
+	int tx = 1472; // starting position for TIME:
 
 	/* array storing all alphabet for level */
 	life_Ptr[0] = (short int *)alp_L.pixel_data;
@@ -280,13 +279,15 @@ void drawHeader(){
 	Pixel *pix;
 	pix = malloc(sizeof(Pixel));
 
-	for(i = 0; i < 6; i++){
-		drawImage(sx,0,dim,dim,pix,level_Ptr[i]);
-		sx += 64;	
+	for (i = 0; i < 6; i++)
+	{
+		drawImage(sx, 0, dim, dim, pix, level_Ptr[i]);
+		sx += 64;
 	}
-	for(i = 0; i < 5; i++){
-		drawImage(lx,0,dim,dim,pix,life_Ptr[i]);
-		drawImage(tx,0,dim,dim,pix,time_Ptr[i]);
+	for (i = 0; i < 5; i++)
+	{
+		drawImage(lx, 0, dim, dim, pix, life_Ptr[i]);
+		drawImage(tx, 0, dim, dim, pix, time_Ptr[i]);
 		lx += 64;
 		tx += 64;
 	}
