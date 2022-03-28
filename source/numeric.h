@@ -2024,7 +2024,7 @@ const struct {
 
 const struct {
     unsigned char	five_data[64 * 64 * 2 + 1];
-    unsigned char	siz_data[64 * 64 * 2 + 1];
+    unsigned char	six_data[64 * 64 * 2 + 1];
     unsigned char	seven_data[64 * 64 * 2 + 1];
     unsigned char	eight_data[64 * 64 * 2 + 1];
     unsigned char	nine_data[64 * 64 * 2 + 1];
