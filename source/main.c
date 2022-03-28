@@ -358,7 +358,7 @@ void drawGameState(Pixel *pixel,
 {
 	int status = 1;		   // game status
 	int numOfButtons = 16; // number of buttons on snes
-	int xD = 128;		   // move in x direction
+	int xD = 192;		   // move in x direction
 	int yD = 128;		   // move in y direction
 
 	int sX = 32; // for size of the cart
