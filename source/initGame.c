@@ -2,6 +2,7 @@
 #include "sprites.h"
 #include "backgrounds.h"
 #include "alphabet.h"
+#include "numeric.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -47,7 +48,6 @@ void initScene1(GameState *gamestate)
 
 void initAlphabet(Alphabet *alp)
 {
-
     alp->alpPtr_c = (short int *)alpImgs.c_data;
     alp->alpPtr_e = (short int *)alpImgs.e_data;
     alp->alpPtr_f = (short int *)alpImgs.f_data;
@@ -60,5 +60,17 @@ void initAlphabet(Alphabet *alp)
     alp->alpPtr_t = (short int *)alpImgs2.t_data;
     alp->alpPtr_v = (short int *)alpImgs2.v_data;
     alp->alpPtr_colon = (short int *)alpImgs2.colon_data;
-    
+}
+
+void initNumeric(Numeric *num){
+    num->numPtr_0 = (short int *)numImgs.zero_data;
+    num->numPtr_1 = (short int *)numImgs.one_data;
+    num->numPtr_2 = (short int *)numImgs.two_data;
+    num->numPtr_3 = (short int *)numImgs.three_data;
+    num->numPtr_4 = (short int *)numImgs.four_data;
+    num->numPtr_5 = (short int *)numImgs2.five_data;
+    num->numPtr_6 = (short int *)numImgs2.six_data;
+    num->numPtr_7 = (short int *)numImgs2.seven_data;
+    num->numPtr_8 = (short int *)numImgs2.eight_data;
+    num->numPtr_9 = (short int *)numImgs2.nine_data;
 }

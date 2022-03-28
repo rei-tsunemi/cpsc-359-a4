@@ -450,14 +450,17 @@ void determineStage()
 {
 	Sprite *mario;
 	Alphabet *alp;
+	Numeric *num;
 	// Sprite *spike;
 
 	gamestate = malloc(sizeof(GameState));
 	initScene1(gamestate);
 	mario = malloc(sizeof(Sprite));
 	alp = malloc(sizeof(Alphabet));
-	initAlphabet(alp);
+	num = malloc(sizeof(Numeric));
 	initMario(mario);
+	initAlphabet(alp);
+	initNumeric(num);
 
 	// spike = malloc(sizeof(Sprite));
 
@@ -501,6 +504,7 @@ void determineStage()
 	free(block);
 	free(mario);
 	free(alp);
+	free(num);
 	free(gamestate);
 	// free(spike);
 	pixel = NULL;

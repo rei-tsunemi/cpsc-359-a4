@@ -62,3 +62,17 @@ typedef struct
     short int *alpPtr_v;
     short int *alpPtr_colon;
 } Alphabet;
+
+typedef struct
+{
+    short int *numPtr_0;
+    short int *numPtr_1;
+    short int *numPtr_2;
+    short int *numPtr_3;
+    short int *numPtr_4;
+    short int *numPtr_5;
+    short int *numPtr_6;
+    short int *numPtr_7;
+    short int *numPtr_8;
+    short int *numPtr_9;
+} Numeric;
