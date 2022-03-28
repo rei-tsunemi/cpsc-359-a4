@@ -1,15 +1,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/mman.h>
-#include "framebuffer.h"
 #include <string.h>
 #include <unistd.h>
 #include <wiringPi.h>
-#include "initGPIO.h"
 #include <time.h>
+#include <pthread.h>
 
-#include "backgrounds.h"
-#include "sprites.h"
+#include "framebuffer.h"
+#include "initGPIO.h"
+#include "initGame.h"
+
+//#include "backgrounds.h"
+//#include "sprites.h"
 
 #include "L.h"
 #include "I.h"
@@ -20,6 +23,9 @@
 #include "T.h"
 #include "M.h"
 
+#include "title.h"
+#include "titleStart.h"
+#include "titlequit.h"
 
 
 /*CPSC 359
@@ -40,13 +46,12 @@
 
 #define X_MAX 1920
 #define Y_MAX 1056
-#define BLOCKSIZE = 32
 
-static int gridSize = 32;
-static int baseSpeed = 55000;
-
+// static int gridSize = 32;
+// static int baseSpeed = 55000;
 static unsigned int *gpioPtr; // get global gpio pointer
 static int globalButtons[16]; // to store the input value from the buttons / register sample buttons
+GameState *gamestate;		  // global gamestate
 
 // GPIO setup macros.
 #define INP_GPIO(g) *(gpioPtr + ((g) / 10)) &= ~(7 << (((g) % 10) * 3)) // set input
@@ -167,19 +172,20 @@ void checkGoal(int posX, int posY, int *x, int *y, int *status)
 	}
 }
 
-void getCartSpeed(int *speed, int *x, int *y, int bg[33][60])
+void getCartSpeed(int *speed, int *x, int *y, int bg[Y_DIM][X_DIM])
 {
 	int colourPos = bg[*y / gridSize][*x / gridSize];
 	if (colourPos != 2)
-		// *speed = baseSpeed * 4;
-		*speed = baseSpeed;
+		*speed = baseSpeed * 4;
+	// *speed = baseSpeed;
 	else
+
 		*speed = baseSpeed;
 }
 
 void determineButtonPressed(int i, int *x, int *y, int *status, int *speed)
 {
-	int mov = 32;
+	// int mov = 32;
 	if (i == 4)
 		*status = 0;
 	else if (i == 5)
@@ -187,28 +193,28 @@ void determineButtonPressed(int i, int *x, int *y, int *status, int *speed)
 		if ((*y) == 64)
 			(*y) = (*y);
 		else
-			(*y) -= mov;
+			(*y) -= gridSize;
 	}
 	else if (i == 6)
 	{
 		if ((*y) == 1024)
 			(*y) = (*y);
 		else
-			(*y) += mov;
+			(*y) += gridSize;
 	}
 	else if (i == 7)
 	{
 		if ((*x) == 0)
 			(*x) = (*x);
 		else
-			(*x) -= mov;
+			(*x) -= gridSize;
 	}
-	else
+	else if (i == 8)
 	{
 		if ((*x) == 1888)
 			(*x) = (*x);
 		else
-			(*x) += mov;
+			(*x) += gridSize;
 	}
 	delayMicroseconds(*speed);
 }
@@ -294,57 +300,61 @@ void drawHeader(){
 	free(pix);
 }
 
-void drawNewScene(int bg[33][60])
+void drawNewScene(int bg[Y_DIM][X_DIM])
 {
-	int blockSize = 32;
+	// int blockSize = 32;
 	int xSize = 60;
 	int ySize = 33;
 	Pixel *scenePixel = malloc(sizeof(Pixel));
 	int yOff, xOff;
 	for (int y = 0; y < ySize; y++)
 	{
-		yOff = y * blockSize;
+		yOff = y * gridSize;
 		for (int x = 0; x < xSize; x++)
 		{
-			xOff = x * blockSize;
+			xOff = x * gridSize;
 			int colour = getColour(bg[y][x]);
-			drawBlock(blockSize, blockSize, xOff, yOff, colour, scenePixel);
+			drawBlock(gridSize, gridSize, xOff, yOff, colour, scenePixel);
 		}
 	}
 	free(scenePixel);
 }
 
-void repaint(int i, int xD, int yD, Pixel *pixel, int bg[33][60])
+void repaint(int i, int xD, int yD, Pixel *pixel, int bg[Y_DIM][X_DIM])
 {
-	int gridDim = 32;
+	// int gridDim = 32;
 	int xPaint = xD;
 	int yPaint = yD;
 	int colour;
 
 	if (i == 5)
 	{
-		yPaint += gridDim;
+		yPaint += gridSize;
 	}
 	else if (i == 6)
 	{
-		yPaint -= gridDim;
+		yPaint -= gridSize;
 	}
 	else if (i == 7)
 	{
-		xPaint += gridDim;
+		xPaint += gridSize;
 	}
 	else
 	{
-		xPaint -= gridDim;
+		xPaint -= gridSize;
 	}
-	colour = getColour(bg[yPaint / gridDim][xPaint / gridDim]);
-	drawBlock(gridDim, gridDim, xPaint, yPaint, colour, pixel);
+	colour = getColour(bg[yPaint / gridSize][xPaint / gridSize]);
+	drawBlock(gridSize, gridSize, xPaint, yPaint, colour, pixel);
+}
+
+void drawMovingSprite(Pixel *pixel, Sprite *sprite, Pixel *block, int bg[Y_DIM][X_DIM])
+{
 }
 
 void drawGameState(Pixel *pixel,
-				   Sprite *mario,
+				   Sprite *currentSprite,
 				   Pixel *block,
-				   int bg[33][60])
+				   int bg[Y_DIM][X_DIM])
 {
 	int status = 1;		   // game status
 	int numOfButtons = 16; // number of buttons on snes
@@ -377,23 +387,22 @@ void drawGameState(Pixel *pixel,
 			}
 		}
 
-		// delayMicroseconds(100);
 		getCartSpeed(&speed, &xD, &yD, bg); // determine the speed
 		determineButtonPressed(press, &xD, &yD, &status, &speed);
 
 		repaint(press, xD, yD, block, bg);
-		// delayMicroseconds(speed);
-		drawBlock(5, 96, 1536, 704, 0xFF00, block); // draws the finish line
+
 		if (i == 5)
-			drawImage(xD, yD, sX, sY, pixel, mario->imgptr_back);
+			drawImage(xD, yD, currentSprite->drawSize, currentSprite->drawSize, pixel, currentSprite->imgptr_back);
 		else if (i == 6)
-			drawImage(xD, yD, sX, sY, pixel, mario->imgptr_front);
+			drawImage(xD, yD, currentSprite->drawSize, currentSprite->drawSize, pixel, currentSprite->imgptr_front);
 		else if (i == 7)
-			drawImage(xD, yD, sX, sY, pixel, mario->imgptr_left);
+			drawImage(xD, yD, currentSprite->drawSize, currentSprite->drawSize, pixel, currentSprite->imgptr_left);
 		else if (i == 8)
-			drawImage(xD, yD, sX, sY, pixel, mario->imgptr_right);
+			drawImage(xD, yD, currentSprite->drawSize, currentSprite->drawSize, pixel, currentSprite->imgptr_right);
 
 		// drawBlock(32,32, &xD, &yD, 0x0FF0, pixel);
+
 		checkGoal(1536, 704, &xD, &yD, &status);
 	}
 }
@@ -406,16 +415,72 @@ void drawPixel(Pixel *pixel)
 	*((unsigned short int *)(framebufferstruct.fptr + location)) = pixel->color;
 }
 
+void screenMenu(int *game, int *stg){
+	Pixel *pix;
+	pix = malloc(sizeof(Pixel));
+	short int *menuPtr = (short int *)img_title.pixel_data;
+	short int *startPtr = (short int *)img_start.pixel_data;
+	short int *quitPtr = (short int *)img_quit.pixel_data;
+
+	int numOfButtons = 16; // number of buttons on snes
+	int i;
+	int status = 1;
+	int start = 0;
+	int quit = 0;
+
+	drawImage(0, 0, 1024, 1920 ,pix, menuPtr);
+
+	while (status)
+	{
+		int pressed = 0;
+		while (!pressed)
+		{
+			Read_SNES();
+			for (i = 1; i <= numOfButtons; i++)
+			{
+				if ((i >= 4 || i <= 8) && *(globalButtons + i) == 0)
+				{
+					// printf("%d was pressed", i);
+					pressed = 1;
+					break; // break out of the for loop
+				}
+			}
+		}
+		if (i == 5){
+			drawImage(0, 0, 1024, 1920 ,pix, startPtr);
+			start = 1;
+			quit = 0;
+		} else if (i == 6) {
+			drawImage(0, 0, 1024, 1920 ,pix, quitPtr);
+			quit = 1;
+			start = 0;
+		} else if (i == 9){
+			if(start == 1) {
+				(*stg) = 1;
+				status = 0;
+			} else if(quit == 1){
+				drawBlock(1920, 1024, 0, 0, 0x0000, pix);
+				(*game) = 0;
+				status = 0;
+			}
+		}
+	}
+}
+
+
 void determineStage()
 {
 	Sprite *mario;
-	mario = malloc(sizeof(Sprite));
-	mario->imgptr_right = (short int *)marioImgs.right_data;
-	mario->imgptr_left = (short int *)marioImgs.left_data;
-	mario->imgptr_front = (short int *)marioImgs.front_data;
-	mario->imgptr_back = (short int *)marioImgs.back_data;
+	// Sprite *spike;
 
-	int stage = 1;
+	gamestate = malloc(sizeof(GameState));
+	initScene1(gamestate);
+	mario = malloc(sizeof(Sprite));
+	initMario(mario);
+
+	// spike = malloc(sizeof(Sprite));
+
+	int stage = 0;
 	int gameOn = 1;
 
 	/* initialize a pixel */
@@ -424,15 +489,22 @@ void determineStage()
 
 	pixel = malloc(sizeof(Pixel));
 	block = malloc(sizeof(Pixel));
-
 	memset(framebufferstruct.fptr, 0, 1);
+
 	while (gameOn)
 	{
-		if (stage == 1)
+		if (stage == 0){
+			screenMenu(&gameOn, &stage);
+		}
+		else if (stage == 1)
 		{
-			drawNewScene(bg1);
-			drawHeader();
-			drawGameState(pixel, mario, block, bg1);
+			// drawNewScene(bg1);
+			drawNewScene((*gamestate).bg);
+			drawBlock(5, 96, 1536, 704, 0xFF00, block); // draws the finish line
+			drawImage(mario->xStart, mario->yStart, gridSize, gridSize, pixel, mario->imgptr_front);
+			// drawGameState(pixel, mario, block, bg1);
+			drawGameState(pixel, mario, block, (*gamestate).bg);
+
 			stage++;
 		}
 		else
@@ -445,6 +517,9 @@ void determineStage()
 	/* free pixel's allocated memory */
 	free(pixel);
 	free(block);
+	free(mario);
+	free(gamestate);
+	// free(spike);
 	pixel = NULL;
 	block = NULL;
 }
