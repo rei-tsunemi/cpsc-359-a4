@@ -46,3 +46,19 @@ void initMario(Sprite *mario);
 void initSpike(Sprite *spike);
 
 void initScene1(GameState *gamestate);
+
+typedef struct
+{
+    short int *alpPtr_c;
+    short int *alpPtr_e;
+    short int *alpPtr_f;
+    short int *alpPtr_i;
+    short int *alpPtr_l;
+    short int *alpPtr_m;
+    short int *alpPtr_o;
+    short int *alpPtr_r;
+    short int *alpPtr_s;
+    short int *alpPtr_t;
+    short int *alpPtr_v;
+    short int *alpPtr_colon;
+} Alphabet;

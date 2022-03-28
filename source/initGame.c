@@ -1,6 +1,7 @@
 #include "initGame.h"
 #include "sprites.h"
 #include "backgrounds.h"
+#include "alphabet.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -42,4 +43,22 @@ void initScene1(GameState *gamestate)
             (*gamestate).bg[i][j] = bg1[i][j];
         }
     }
+}
+
+void initAlphabet(Alphabet *alp)
+{
+
+    alp->alpPtr_c = (short int *)alpImgs.c_data;
+    alp->alpPtr_e = (short int *)alpImgs.e_data;
+    alp->alpPtr_f = (short int *)alpImgs.f_data;
+    alp->alpPtr_i = (short int *)alpImgs.i_data;
+    alp->alpPtr_l = (short int *)alpImgs.l_data;
+    alp->alpPtr_m = (short int *)alpImgs.m_data;
+    alp->alpPtr_o = (short int *)alpImgs.o_data;
+    alp->alpPtr_r = (short int *)alpImgs.r_data;
+    alp->alpPtr_s = (short int *)alpImgs2.s_data;
+    alp->alpPtr_t = (short int *)alpImgs2.t_data;
+    alp->alpPtr_v = (short int *)alpImgs2.v_data;
+    alp->alpPtr_colon = (short int *)alpImgs2.colon_data;
+    
 }

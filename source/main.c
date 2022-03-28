@@ -14,15 +14,6 @@
 //#include "backgrounds.h"
 //#include "sprites.h"
 
-#include "L.h"
-#include "I.h"
-#include "F.h"
-#include "E.h"
-#include "dot.h"
-#include "V.h"
-#include "T.h"
-#include "M.h"
-
 #include "title.h"
 #include "titleStart.h"
 #include "titlequit.h"
@@ -251,51 +242,41 @@ void drawBlock(int sizeX, int sizeY, int xD, int yD, int clr, Pixel *pixel)
 	}
 }
 
-void drawHeader(){
-	short int *life_Ptr[5];
-	short int *level_Ptr[6];
-	short int *time_Ptr[5];
-	int i;
+void drawHeader(Alphabet *word){
 	int dim = 64; //dimention of each alphabet
-	int sx = 0;   //starting position for LEVEL:
-	int lx = 704; //starting position for LIFE:
-	int tx = 1472; //starting position for TIME:
-
-	/* array storing all alphabet for level */
-	life_Ptr[0] = (short int *)alp_L.pixel_data;
-	life_Ptr[1] = (short int *)alp_I.pixel_data;
-	life_Ptr[2] = (short int *)alp_F.pixel_data;
-	life_Ptr[3] = (short int *)alp_E.pixel_data;
-	life_Ptr[4] = (short int *)alp_colon.pixel_data;
-
-	/* array storing all alphabet for life */
-	level_Ptr[0] = (short int *)alp_L.pixel_data;
-	level_Ptr[1] = (short int *)alp_E.pixel_data;
-	level_Ptr[2] = (short int *)alp_V.pixel_data;
-	level_Ptr[3] = (short int *)alp_E.pixel_data;
-	level_Ptr[4] = (short int *)alp_L.pixel_data;
-	level_Ptr[5] = (short int *)alp_colon.pixel_data;
-
-	/* array storing all alphabet for time */
-	time_Ptr[0] = (short int *)alp_T.pixel_data;
-	time_Ptr[1] = (short int *)alp_I.pixel_data;
-	time_Ptr[2] = (short int *)alp_M.pixel_data;
-	time_Ptr[3] = (short int *)alp_E.pixel_data;
-	time_Ptr[4] = (short int *)alp_colon.pixel_data;
-
 	Pixel *pix;
 	pix = malloc(sizeof(Pixel));
 
-	for(i = 0; i < 6; i++){
-		drawImage(sx,0,dim,dim,pix,level_Ptr[i]);
-		sx += 64;	
-	}
-	for(i = 0; i < 5; i++){
-		drawImage(lx,0,dim,dim,pix,life_Ptr[i]);
-		drawImage(tx,0,dim,dim,pix,time_Ptr[i]);
-		lx += 64;
-		tx += 64;
-	}
+
+	/* printing all alphabet for level */
+	drawImage(0, 0, dim, dim, pix, word->alpPtr_l);
+	drawImage(64, 0, dim, dim, pix, word->alpPtr_e);
+	drawImage(128, 0, dim, dim, pix, word->alpPtr_v);
+	drawImage(192, 0, dim, dim, pix, word->alpPtr_e);
+	drawImage(256, 0, dim, dim, pix, word->alpPtr_l);
+	drawImage(320, 0, dim, dim, pix, word->alpPtr_colon);
+
+	/* printing all alphabet for life */
+	drawImage(448, 0, dim, dim, pix, word->alpPtr_l);
+	drawImage(512, 0, dim, dim, pix, word->alpPtr_i);
+	drawImage(576, 0, dim, dim, pix, word->alpPtr_f);
+	drawImage(640, 0, dim, dim, pix, word->alpPtr_e);
+	drawImage(704, 0, dim, dim, pix, word->alpPtr_colon);
+
+	/* printing all alphabet for score */
+	drawImage(832, 0, dim, dim, pix, word->alpPtr_s);
+	drawImage(896, 0, dim, dim, pix, word->alpPtr_c);
+	drawImage(960, 0, dim, dim, pix, word->alpPtr_o);
+	drawImage(1024, 0, dim, dim, pix, word->alpPtr_r);
+	drawImage(1088, 0, dim, dim, pix, word->alpPtr_e);
+	drawImage(1152, 0, dim, dim, pix, word->alpPtr_colon);
+
+	/* printing all alphabet for time */
+	drawImage(1408, 0, dim, dim, pix, word->alpPtr_t);
+	drawImage(1472, 0, dim, dim, pix, word->alpPtr_i);
+	drawImage(1536, 0, dim, dim, pix, word->alpPtr_m);
+	drawImage(1600, 0, dim, dim, pix, word->alpPtr_e);
+	drawImage(1664, 0, dim, dim, pix, word->alpPtr_colon);
 
 	free(pix);
 }
@@ -360,9 +341,6 @@ void drawGameState(Pixel *pixel,
 	int numOfButtons = 16; // number of buttons on snes
 	int xD = 192;		   // move in x direction
 	int yD = 128;		   // move in y direction
-
-	int sX = 32; // for size of the cart
-	int sY = 32;
 
 	// press: for knowing which button was pressed
 	// i: for tracking the buttons
@@ -471,11 +449,14 @@ void screenMenu(int *game, int *stg){
 void determineStage()
 {
 	Sprite *mario;
+	Alphabet *alp;
 	// Sprite *spike;
 
 	gamestate = malloc(sizeof(GameState));
 	initScene1(gamestate);
 	mario = malloc(sizeof(Sprite));
+	alp = malloc(sizeof(Alphabet));
+	initAlphabet(alp);
 	initMario(mario);
 
 	// spike = malloc(sizeof(Sprite));
@@ -500,6 +481,7 @@ void determineStage()
 		{
 			// drawNewScene(bg1);
 			drawNewScene((*gamestate).bg);
+			drawHeader(alp);
 			drawBlock(5, 96, 1536, 704, 0xFF00, block); // draws the finish line
 			drawImage(mario->xStart, mario->yStart, gridSize, gridSize, pixel, mario->imgptr_front);
 			// drawGameState(pixel, mario, block, bg1);
@@ -518,6 +500,7 @@ void determineStage()
 	free(pixel);
 	free(block);
 	free(mario);
+	free(alp);
 	free(gamestate);
 	// free(spike);
 	pixel = NULL;
