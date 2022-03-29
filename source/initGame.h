@@ -3,52 +3,6 @@
 
 typedef struct
 {
-    int drawSize;
-    int xStart;
-    int yStart;
-    int canMove;
-    int moveSpeed;
-    short int *imgptr_front;
-    short int *imgptr_back;
-    short int *imgptr_right;
-    short int *imgptr_left;
-} Sprite;
-
-typedef struct
-{
-    int xSize;
-    int ySize;
-    int colour;
-
-} GoalPost;
-
-static int Y_DIM = 33; // 33
-static int X_DIM = 60; // 60
-
-typedef struct
-{
-    int bg[33][60];
-    int numberOfSprites;
-    Sprite *mario;
-    Sprite *sceneSprites;
-    int winCond;
-    int loseCond;
-    int lives;
-    int score;
-    time_t timeLeft;
-} GameState;
-
-static int baseSpeed = 55000;
-static int gridSize = 32;
-
-void initMario(Sprite *mario);
-
-void initSpike(Sprite *spike);
-
-void initScene1(GameState *gamestate);
-
-typedef struct
-{
     short int *alpPtr_c;
     short int *alpPtr_e;
     short int *alpPtr_f;
@@ -76,3 +30,110 @@ typedef struct
     short int *numPtr_8;
     short int *numPtr_9;
 } Numeric;
+
+typedef struct
+{
+    int drawSize;
+    int xStart;
+    int yStart;
+    int moveSpeed;
+    short int *imgptr_front;
+    short int *imgptr_back;
+    short int *imgptr_right;
+    short int *imgptr_left;
+} Mario;
+
+typedef struct
+{
+    int xPos;
+    int yPos;
+    int drawSize;
+    int moveSpeed;
+    short int *imgptr_right;
+    short int *imgptr_left;
+
+} BugSprite;
+
+typedef struct
+{
+    int xPos;
+    int yPos;
+    int posShift;
+    int maxPosShift;
+    int moveVector;    // whether right to left or up and down
+    int moveDirection; // -1 is opposite what is was previously
+
+} BugPositions;
+
+typedef struct
+{
+    int xStart;
+    int yStart;
+    int drawSize;
+    int itemsDropped; // number of items that are dropped
+    short int *imgptr;
+} ItemBlock;
+
+typedef struct
+{
+    int xPos;
+    int yPos;
+
+} ItemBlockPositions;
+
+typedef struct
+{
+    int xSize;
+    int ySize;
+    int colour;
+    int xPos;
+    int yPos;
+
+} GoalPost;
+
+typedef struct
+{
+    int bugs;
+    int items;
+} SpriteCount;
+
+static int Y_DIM = 33; // 33
+static int X_DIM = 60; // 60
+
+typedef struct
+{
+    int bg[33][60];
+    Mario *mario;
+    BugSprite *bugs;
+    ItemBlock *itemblocks;
+    GoalPost *goal;
+    int winCond;
+    int loseCond;
+    int lives;
+    int score;
+    int timeLeft;
+} GameState;
+
+static int baseSpeed = 55000;
+static int gridSize = 32;
+
+static int MAX_BUGS = 15;
+static int MAX_ITEMS = 15;
+
+void initMario(Mario *mario);
+
+void initBug(BugSprite *bug);
+
+void initItemBlock(ItemBlock *itemblock);
+
+// void initBug(Sprite *bug);
+
+void initScene1(GameState *gamestate,
+                BugPositions *bugspots,
+                ItemBlockPositions *itemSpots,
+                SpriteCount *numOfSprites);
+
+void initScene2(GameState *gamestate);
+
+void freeGameStateObjects(GameState *gamestate);
+

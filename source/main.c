@@ -42,7 +42,11 @@
 // static int baseSpeed = 55000;
 static unsigned int *gpioPtr; // get global gpio pointer
 static int globalButtons[16]; // to store the input value from the buttons / register sample buttons
-GameState *gamestate;		  // global gamestate
+
+GameState *gamestate;		   // global gamestate
+BugPositions *bugSpots;		   // global array of bug spots
+ItemBlockPositions *itemSpots; // global array of items spots
+SpriteCount *numOfSprites;	   // global number of sprites
 
 // GPIO setup macros.
 #define INP_GPIO(g) *(gpioPtr + ((g) / 10)) &= ~(7 << (((g) % 10) * 3)) // set input
@@ -213,15 +217,16 @@ void determineButtonPressed(int i, int *x, int *y, int *status, int *speed)
 void drawImage(int xD, int yD, int sizeX, int sizeY, Pixel *pixel, short int *image)
 {
 	int i = 0;
-	for (int y = 0; y < sizeX; y++)
-	{ // image height
-		for (int x = 0; x < sizeY; x++)
-		{ // image width
+	for (int y = 0; y < sizeX; y++) // image height
+	{
+		for (int x = 0; x < sizeY; x++) // image width
+		{
 			pixel->color = image[i];
 			pixel->x = x + xD;
 			pixel->y = y + yD;
-
-			drawPixel(pixel);
+			// -31505 is the background for mario
+			if (image[i] != -31505)
+				drawPixel(pixel);
 			i++;
 		}
 	}
@@ -328,19 +333,56 @@ void repaint(int i, int xD, int yD, Pixel *pixel, int bg[Y_DIM][X_DIM])
 	drawBlock(gridSize, gridSize, xPaint, yPaint, colour, pixel);
 }
 
-void drawMovingSprite(Pixel *pixel, Sprite *sprite, Pixel *block, int bg[Y_DIM][X_DIM])
+void drawBugs(Pixel *pixel, Pixel *block, BugSprite *bug, int bg[Y_DIM][X_DIM])
 {
+	int i, colour, xD, yD, currentShift, moveD;
+	int bugsToPrint = numOfSprites->bugs;
+	for (i = 0; i < bugsToPrint; i++)
+	{
+		xD = (bugSpots + i)->xPos;
+		yD = (bugSpots + i)->yPos;
+
+		// repaint where it was first
+		colour = getColour(bg[yD / gridSize][xD / gridSize]);
+		drawBlock(gridSize, gridSize, xD, yD, colour, pixel);
+
+		currentShift = (bugSpots + i)->posShift;
+		moveD = (bugSpots + i)->moveDirection;
+
+		xD *= (moveD * currentShift);
+		yD *= (moveD * currentShift);
+		if (moveD == 1)
+			drawImage(xD, yD, bug->drawSize, bug->drawSize, pixel, bug->imgptr_right);
+		else
+			drawImage(xD, yD, bug->drawSize, bug->drawSize, pixel, bug->imgptr_left);
+
+		currentShift++;
+		if (currentShift == (bugSpots + i)->maxPosShift)
+		{
+			currentShift = 0;
+			moveD *= -1;
+			(bugSpots + i)->xPos = xD;
+			(bugSpots + i)->yPos = yD;
+		}
+
+		(bugSpots + i)->posShift = currentShift;
+		(bugSpots + i)->moveDirection = moveD;
+	}
+	// delayMicroseconds(55000);
 }
+// void* drawMovingSprite(void* ){}
 
 void drawGameState(Pixel *pixel,
-				   Sprite *currentSprite,
+				   //Sprite *currentSprite,
+				   GameState *gamestate,
 				   Pixel *block,
 				   int bg[Y_DIM][X_DIM])
 {
+	Mario *mario = gamestate->mario;
 	int status = 1;		   // game status
 	int numOfButtons = 16; // number of buttons on snes
-	int xD = 192;		   // move in x direction
-	int yD = 128;		   // move in y direction
+	int xD = mario->xStart; // move in x direction
+	int yD = mario->yStart; // move in y direction
 
 	// press: for knowing which button was pressed
 	// i: for tracking the buttons
@@ -352,6 +394,7 @@ void drawGameState(Pixel *pixel,
 		int pressed = 0;
 		while (!pressed)
 		{
+			drawBugs(pixel, block, gamestate->bugs, bg);
 			Read_SNES();
 			for (i = 1; i <= numOfButtons; i++)
 			{
@@ -371,15 +414,13 @@ void drawGameState(Pixel *pixel,
 		repaint(press, xD, yD, block, bg);
 
 		if (i == 5)
-			drawImage(xD, yD, currentSprite->drawSize, currentSprite->drawSize, pixel, currentSprite->imgptr_back);
+			drawImage(xD, yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_back);
 		else if (i == 6)
-			drawImage(xD, yD, currentSprite->drawSize, currentSprite->drawSize, pixel, currentSprite->imgptr_front);
+			drawImage(xD, yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_front);
 		else if (i == 7)
-			drawImage(xD, yD, currentSprite->drawSize, currentSprite->drawSize, pixel, currentSprite->imgptr_left);
+			drawImage(xD, yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_left);
 		else if (i == 8)
-			drawImage(xD, yD, currentSprite->drawSize, currentSprite->drawSize, pixel, currentSprite->imgptr_right);
-
-		// drawBlock(32,32, &xD, &yD, 0x0FF0, pixel);
+			drawImage(xD, yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_right);
 
 		checkGoal(1536, 704, &xD, &yD, &status);
 	}
@@ -448,24 +489,33 @@ void screenMenu(int *game, int *stg){
 
 void determineStage()
 {
-	Sprite *mario;
+	gamestate = malloc(sizeof(GameState));
+	bugSpots = malloc(sizeof(BugPositions) * MAX_BUGS);
+	itemSpots = malloc(sizeof(ItemBlockPositions) * MAX_ITEMS);
+	numOfSprites = malloc(sizeof(SpriteCount));
+	initScene1(gamestate, bugSpots, itemSpots, numOfSprites);
+	//Sprite *mario;
 	Alphabet *alp;
 	Numeric *num;
-	// Sprite *spike;
+	
+	// short int *marioColour = (gamestate->mario->imgptr_front);
+	// printf("here");
+	// for (int i = 0; i < Y_DIM + X_DIM; i++)
+	// {
+	// 	printf("%d", *(marioColour + i));
+	// }
+	// sleep(1);
+	// exit(0);
 
-	gamestate = malloc(sizeof(GameState));
-	initScene1(gamestate);
-	mario = malloc(sizeof(Sprite));
 	alp = malloc(sizeof(Alphabet));
 	num = malloc(sizeof(Numeric));
-	initMario(mario);
+
 	initAlphabet(alp);
 	initNumeric(num);
 
-	// spike = malloc(sizeof(Sprite));
-
 	int stage = 0;
 	int gameOn = 1;
+	int i;
 
 	/* initialize a pixel */
 	Pixel *pixel;
@@ -482,18 +532,32 @@ void determineStage()
 		}
 		else if (stage == 1)
 		{
-			// drawNewScene(bg1);
-			drawNewScene((*gamestate).bg);
+			drawNewScene(gamestate->bg);
 			drawHeader(alp);
 			drawBlock(5, 96, 1536, 704, 0xFF00, block); // draws the finish line
-			drawImage(mario->xStart, mario->yStart, gridSize, gridSize, pixel, mario->imgptr_front);
-			// drawGameState(pixel, mario, block, bg1);
-			drawGameState(pixel, mario, block, (*gamestate).bg);
+			drawImage(gamestate->mario->xStart,
+					  gamestate->mario->yStart,
+					  gridSize,
+					  gridSize,
+					  pixel,
+					  gamestate->mario->imgptr_front);
+			int bugsInScene = numOfSprites->bugs;
+			for (i = 0; i < bugsInScene; i++)
+			{
+				drawImage(bugSpots->xPos,
+						  bugSpots->yPos,
+						  gridSize,
+						  gridSize,
+						  pixel,
+						  gamestate->bugs->imgptr_left);
+			}
+			drawGameState(pixel, gamestate, block, gamestate->bg);
 
 			stage++;
 		}
 		else
 		{
+			initScene2(gamestate);
 			gameOn = 0;
 		}
 	}
@@ -502,13 +566,13 @@ void determineStage()
 	/* free pixel's allocated memory */
 	free(pixel);
 	free(block);
-	free(mario);
 	free(alp);
 	free(num);
+	freeGameStateObjects(gamestate);
+	free(numOfSprites);
+	free(bugSpots);
+	free(itemSpots);
 	free(gamestate);
-	// free(spike);
-	pixel = NULL;
-	block = NULL;
 }
 
 int main()

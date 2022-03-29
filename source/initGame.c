@@ -7,10 +7,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void initMario(Sprite *mario)
+void initMario(Mario *mario)
 {
 
-    mario->canMove = 1;
     mario->moveSpeed = baseSpeed;
     mario->imgptr_right = (short int *)marioImgs.right_data;
     mario->imgptr_left = (short int *)marioImgs.left_data;
@@ -21,21 +20,75 @@ void initMario(Sprite *mario)
     mario->drawSize = gridSize;
 }
 
-void initSpike(Sprite *spike)
+void initBug(BugSprite *bug)
 {
-    spike->canMove = 0;
-    spike->moveSpeed = 0;
-    spike->drawSize = gridSize;
+    bug->imgptr_left = (short int *)bugImg.left_data;
+    bug->imgptr_right = (short int *)bugImg.right_data;
+    bug->drawSize = gridSize;
+    bug->moveSpeed = baseSpeed;
 }
 
-void initScene1(GameState *gamestate)
+void initItemBlock(ItemBlock *itemblock)
 {
+    itemblock->drawSize = gridSize;
+    itemblock->imgptr = (short int *)spikeImg.front_data;
+    itemblock->itemsDropped = 3; // 4 items are dropped by an item block
+}
+
+void initScene1(GameState *gamestate,
+                BugPositions *bugspots,
+                ItemBlockPositions *itemSpots,
+                SpriteCount *numOfSprites)
+{
+    int i, j;
+    // number of sprites to be in this scene
+    numOfSprites->bugs = 1;
+    numOfSprites->items = 3;
+
+    // set positions of the bugs
+    (bugspots + 0)->yPos = 480;
+    (bugspots + 0)->xPos = 320;
+    for (i = 0; i < numOfSprites->bugs; i++)
+    {
+        (bugspots + i)->posShift = 0;
+        (bugspots + i)->maxPosShift = 5;
+    }
+
+    // init important game state stuff
+    gamestate->timeLeft = 300;
     gamestate->lives = 3;
     gamestate->score = 0;
     gamestate->loseCond = 0;
     gamestate->winCond = 0;
-    gamestate->numberOfSprites = 14;
 
+    // init mario
+    gamestate->mario = malloc(sizeof(Mario));
+    initMario(gamestate->mario);
+
+    // init other sprites
+    gamestate->bugs = malloc(sizeof(BugSprite));
+    initBug(gamestate->bugs);
+
+    gamestate->itemblocks = malloc(sizeof(ItemBlock));
+    initItemBlock(gamestate->itemblocks);
+
+    // init the goal post
+    gamestate->goal = malloc(sizeof(GoalPost));
+
+    // copy background 1 into the gamestate
+    for (i = 0; i < Y_DIM; i++)
+    {
+        for (j = 0; j < X_DIM; j++)
+        {
+            (*gamestate).bg[i][j] = bg1[i][j];
+        }
+    }
+}
+
+void initScene2(GameState *gamestate)
+{
+    // copy background 2 into the gamestate
+    gamestate->timeLeft = 150;
     int i, j;
     for (i = 0; i < Y_DIM; i++)
     {
@@ -44,6 +97,15 @@ void initScene1(GameState *gamestate)
             (*gamestate).bg[i][j] = bg1[i][j];
         }
     }
+}
+
+void freeGameStateObjects(GameState *gamestate)
+{
+    // free everything
+    free(gamestate->mario);
+    free(gamestate->bugs);
+    free(gamestate->itemblocks);
+    free(gamestate->goal);
 }
 
 void initAlphabet(Alphabet *alp)
