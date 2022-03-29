@@ -35,6 +35,27 @@ void initItemBlock(ItemBlock *itemblock)
     itemblock->itemsDropped = 3; // 4 items are dropped by an item block
 }
 
+void changeItemAtPos(int xS, int yS, ItemBlock *itemblocks)
+{
+}
+
+void changeBugsAtPos(int i,
+                     int xS,
+                     int yS,
+                     int posS,
+                     int maxPosS,
+                     int moveD,
+                     int moveV,
+                     BugPositions *bugspot)
+{
+    (bugspot + i)->xStart = xS;
+    (bugspot + i)->yStart = yS;
+    (bugspot + i)->posShift = posS;
+    (bugspot + i)->moveVector = moveV;
+    (bugspot + i)->maxPosShift = maxPosS;
+    (bugspot + i)->moveDirection = moveD;
+}
+
 void initScene1(GameState *gamestate,
                 BugPositions *bugspots,
                 ItemBlockPositions *itemSpots,
@@ -42,21 +63,22 @@ void initScene1(GameState *gamestate,
 {
     int i, j;
     // number of sprites to be in this scene
-    numOfSprites->bugs = 1;
+    numOfSprites->bugs = 2;
     numOfSprites->items = 3;
 
-    // set positions of the bugs
-    (bugspots + 0)->yPos = 480;
-    (bugspots + 0)->xPos = 320;
-    for (i = 0; i < numOfSprites->bugs; i++)
-    {
-        (bugspots + i)->posShift = 0;
-        (bugspots + i)->maxPosShift = 5;
-    }
+    // i -> position in the struct array
+    // xS -> x start pos
+    // yS -> y start pos
+    // posS -> pos shift (inital position shift, will increment / decrement later) (0 is default)
+    // maxPosS -> the maximum the bug can move
+    // moveD -> move direction
+    // moveV -> up / down (2), left / right (1)
+    changeBugsAtPos(0, 320, 320, 0, 10, -1, 1, bugspots);
+    changeBugsAtPos(1, 480, 544, 0, 10, 1, 2, bugspots);
 
     // init important game state stuff
     gamestate->timeLeft = 300;
-    gamestate->lives = 3;
+    gamestate->lives = 5;
     gamestate->score = 0;
     gamestate->loseCond = 0;
     gamestate->winCond = 0;
@@ -124,7 +146,8 @@ void initAlphabet(Alphabet *alp)
     alp->alpPtr_colon = (short int *)alpImgs2.colon_data;
 }
 
-void initNumeric(Numeric *num){
+void initNumeric(Numeric *num)
+{
     num->numPtr_0 = (short int *)numImgs.zero_data;
     num->numPtr_1 = (short int *)numImgs.one_data;
     num->numPtr_2 = (short int *)numImgs.two_data;

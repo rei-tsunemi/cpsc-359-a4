@@ -56,11 +56,11 @@ typedef struct
 
 typedef struct
 {
-    int xPos;
-    int yPos;
+    int xStart;
+    int yStart;
     int posShift;
     int maxPosShift;
-    int moveVector;    // whether right to left or up and down
+    int moveVector;    // whether right to left (1) or up and down (2)
     int moveDirection; // -1 is opposite what is was previously
 
 } BugPositions;
@@ -117,8 +117,8 @@ typedef struct
 static int baseSpeed = 55000;
 static int gridSize = 32;
 
-static int MAX_BUGS = 15;
-static int MAX_ITEMS = 15;
+// static int MAX_BUGS = 15;
+// static int MAX_ITEMS = 15;
 
 void initMario(Mario *mario);
 
@@ -126,7 +126,16 @@ void initBug(BugSprite *bug);
 
 void initItemBlock(ItemBlock *itemblock);
 
-// void initBug(Sprite *bug);
+void changeItemAtPos(int xS, int yS, ItemBlock *itemblocks);
+
+void changeBugsAtPos(int i,
+                     int xS,
+                     int yS,
+                     int posS,
+                     int maxPosS,
+                     int moveD,
+                     int moveV,
+                     BugPositions *bugspot);
 
 void initScene1(GameState *gamestate,
                 BugPositions *bugspots,
@@ -137,3 +146,5 @@ void initScene2(GameState *gamestate);
 
 void freeGameStateObjects(GameState *gamestate);
 
+void initNumeric(Numeric *num);
+void initAlphabet(Alphabet *alp);
