@@ -146,16 +146,30 @@ void Read_SNES()
 
 int getColour(int num)
 {
-	if (num == 1)
-		return 0x00FF;
-	else if (num == 0)
-		return 0xFFFF;
+	if (num == 0)
+		return 0xFFFF;  //white
+	else if (num == 1)
+		return 0x0000;  //black
+	else if (num == 2)
+		return 0x8430;  //grey
+	else if (num == 3)
+		return 0xC841;  //red
+	else if (num == 4)
+		return 0x00FF;	//blue
+	else if (num == 5)
+		return 0x24c4;  //light green
+	else if (num == 6)
+		return 0xCEE2;  //creamy yellow
 	else // num is 2
-		return 0x0000;
+		return 0x0000;  //black
 }
 
-void checkCollision(int *x, int *y)
+void checkCollision(int *x, int *y, int *xToCheck, int *yToCheck, int *flag)
 {
+	if ((*x == *xToCheck) && (*y == *yToCheck))
+	{
+		*flag = 1;
+	}
 }
 
 void checkGoal(int posX, int posY, int *x, int *y, int *status)
@@ -332,36 +346,60 @@ void repaint(int i, int xD, int yD, Pixel *pixel, int bg[Y_DIM][X_DIM])
 	drawBlock(gridSize, gridSize, xPaint, yPaint, colour, pixel);
 }
 
+void findBugCurrentSpot(int *xD, int *yD, int *xP, int *yP, BugPositions *bugSpot)
+{
+	int offSet = gridSize;
+	int currentShift = bugSpot->posShift;
+	int moveD = bugSpot->moveDirection;
+
+	*xP = bugSpot->xStart;
+	*yP = bugSpot->yStart;
+
+	*xD = bugSpot->xStart;
+	*yD = bugSpot->yStart;
+
+	if (bugSpot->moveVector == 1)
+	{
+		*xD += (offSet * (currentShift + 1) * moveD);
+		*xP += (offSet * currentShift * moveD);
+	}
+	else
+	{
+		*yD += (offSet * (currentShift + 1) * moveD);
+		*yP += (offSet * currentShift * moveD);
+	}
+}
+
 void drawBugs(Pixel *pixel, Pixel *block, BugSprite *bug, int bg[Y_DIM][X_DIM])
 {
-	int i, colour, xD, yD, currentShift, moveD;
+	int i, colour, currentShift, moveD;
+	int xD, yD, xPrev, yPrev;
 	int bugsToPrint = numOfSprites->bugs;
+	// int offSet = gridSize;
 	for (i = 0; i < bugsToPrint; i++)
 	{
-		xD = (bugSpots + i)->xPos;
-		yD = (bugSpots + i)->yPos;
-
-		// repaint where it was first
-		colour = getColour(bg[yD / gridSize][xD / gridSize]);
-		drawBlock(gridSize, gridSize, xD, yD, colour, pixel);
 
 		currentShift = (bugSpots + i)->posShift;
 		moveD = (bugSpots + i)->moveDirection;
+		findBugCurrentSpot(&xD, &yD, &xPrev, &yPrev, (bugSpots + i));
 
-		xD *= (moveD * currentShift);
-		yD *= (moveD * currentShift);
+		currentShift++;
+
+		// repaint where it was first
+		colour = getColour(bg[yPrev / gridSize][xPrev / gridSize]);
+		drawBlock(gridSize, gridSize, xPrev, yPrev, colour, pixel);
+
 		if (moveD == 1)
 			drawImage(xD, yD, bug->drawSize, bug->drawSize, pixel, bug->imgptr_right);
 		else
 			drawImage(xD, yD, bug->drawSize, bug->drawSize, pixel, bug->imgptr_left);
 
-		currentShift++;
-		if (currentShift == (bugSpots + i)->maxPosShift)
+		if ((currentShift + 1) == (bugSpots + i)->maxPosShift)
 		{
 			currentShift = 0;
 			moveD *= -1;
-			(bugSpots + i)->xPos = xD;
-			(bugSpots + i)->yPos = yD;
+			(bugSpots + i)->xStart = xD;
+			(bugSpots + i)->yStart = yD;
 		}
 
 		(bugSpots + i)->posShift = currentShift;
@@ -382,6 +420,9 @@ void drawGameState(Pixel *pixel,
 	int numOfButtons = 16;	// number of buttons on snes
 	int xD = mario->xStart; // move in x direction
 	int yD = mario->yStart; // move in y direction
+	int bugCol = 0;			// test if collided with a bug
+	int currentLives = gamestate->lives;
+	// int lives = 3;
 
 	// press: for knowing which button was pressed
 	// i: for tracking the buttons
@@ -421,6 +462,29 @@ void drawGameState(Pixel *pixel,
 		else if (i == 8)
 			drawImage(xD, yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_right);
 
+		// bug x and y positions ( move and previous )
+		int bX, bY, bxP, byP;
+		for (int j = 0; j < numOfSprites->bugs; j++)
+		{
+			findBugCurrentSpot(&bX, &bY, &bxP, &byP, (bugSpots + j));
+			checkCollision(&xD, &yD, &bX, &bY, &bugCol);
+			checkCollision(&xD, &yD, &bxP, &byP, &bugCol);
+			if (bugCol == 1)
+			{
+				// status = 0;
+
+				currentLives--;
+				xD = mario->xStart;
+				yD = mario->yStart;
+				drawImage(xD, yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_front);
+				bugCol = 0;
+				break;
+			}
+		}
+		// exit game if lives == 0
+		// if (currentLives == 0)
+		// 	break;
+		// checkCollision()
 		checkGoal(1536, 704, &xD, &yD, &status);
 	}
 }
@@ -496,9 +560,10 @@ void screenMenu(int *game, int *stg)
 
 void determineStage()
 {
+	int maxObjects = 15;
 	gamestate = malloc(sizeof(GameState));
-	bugSpots = malloc(sizeof(BugPositions) * MAX_BUGS);
-	itemSpots = malloc(sizeof(ItemBlockPositions) * MAX_ITEMS);
+	bugSpots = malloc(sizeof(BugPositions) * maxObjects);
+	itemSpots = malloc(sizeof(ItemBlockPositions) * maxObjects);
 	numOfSprites = malloc(sizeof(SpriteCount));
 	initScene1(gamestate, bugSpots, itemSpots, numOfSprites);
 	// Sprite *mario;
@@ -552,8 +617,8 @@ void determineStage()
 			int bugsInScene = numOfSprites->bugs;
 			for (i = 0; i < bugsInScene; i++)
 			{
-				drawImage(bugSpots->xPos,
-						  bugSpots->yPos,
+				drawImage(bugSpots->xStart,
+						  bugSpots->yStart,
 						  gridSize,
 						  gridSize,
 						  pixel,
