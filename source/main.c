@@ -147,12 +147,22 @@ void Read_SNES()
 
 int getColour(int num)
 {
-	if (num == 1)
-		return 0x00FF;
-	else if (num == 0)
-		return 0xFFFF;
+	if (num == 0)
+		return 0xFFFF;  //white
+	else if (num == 1)
+		return 0x0000;  //black
+	else if (num == 2)
+		return 0x8430;  //grey
+	else if (num == 3)
+		return 0xC841;  //red
+	else if (num == 4)
+		return 0x00FF;	//blue
+	else if (num == 5)
+		return 0x24c4;  //light green
+	else if (num == 6)
+		return 0xCEE2;  //creamy yellow
 	else // num is 2
-		return 0x0000;
+		return 0x0000;  //black
 }
 
 void checkCollision(int *x, int *y)
