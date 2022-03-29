@@ -1,33 +1,6 @@
 /* sprite def*/
-typedef struct
-{
-    int xStart;
-    int yStart;
-    int moveSpeed;
-    short int *imgptr_front;
-    short int *imgptr_back;
-    short int *imgptr_right;
-    short int *imgptr_left;
-} Sprite;
-
-struct GoalPost
-{
-    int xSize;
-    int ySize;
-    int colour;
-};
-
-struct GameState
-{
-    int **bg;
-    int gridDim;
-    int mariostartx;
-    int mariostarty;
-    int winCond;
-    int loseCond;
-    int lives;
-    int score;
-};
+#ifndef BACKGROUNDS_H
+#define BACKGROUNDS_H
 
 int bg1[33][60] =
     {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
@@ -66,3 +39,5 @@ int bg1[33][60] =
 int bg2[33][60] = {};
 int bg3[33][60] = {};
 int bg4[33][60] = {};
+
+#endif
