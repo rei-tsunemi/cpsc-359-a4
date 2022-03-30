@@ -147,21 +147,21 @@ void Read_SNES()
 int getColour(int num)
 {
 	if (num == 0)
-		return 0xFFFF;  //white
+		return 0xFFFF; // white
 	else if (num == 1)
-		return 0x0000;  //black
+		return 0x0000; // black
 	else if (num == 2)
-		return 0x8430;  //grey
+		return 0x8430; // grey
 	else if (num == 3)
-		return 0xC841;  //red
+		return 0xC841; // red
 	else if (num == 4)
-		return 0x00FF;	//blue
+		return 0x00FF; // blue
 	else if (num == 5)
-		return 0x24c4;  //light green
+		return 0x24c4; // light green
 	else if (num == 6)
-		return 0xCEE2;  //creamy yellow
-	else // num is 2
-		return 0x0000;  //black
+		return 0xCEE2; // creamy yellow
+	else			   // num is 2
+		return 0x0000; // black
 }
 
 void checkCollision(int *x, int *y, int *xToCheck, int *yToCheck, int *flag)
@@ -405,7 +405,20 @@ void drawBugs(Pixel *pixel, Pixel *block, BugSprite *bug, int bg[Y_DIM][X_DIM])
 		(bugSpots + i)->posShift = currentShift;
 		(bugSpots + i)->moveDirection = moveD;
 	}
-	// delayMicroseconds(55000);
+	delayMicroseconds(35000);
+}
+
+void *drawBugsAtPos(void *param)
+{
+	GameState *gamestate = (GameState *)param;
+	Pixel *pixel = malloc(sizeof(Pixel));
+	Pixel *block = malloc(sizeof(Pixel));
+
+	while (gamestate->sceneStatus)
+	{
+		drawBugs(pixel, block, gamestate->bugs, gamestate->bg);
+	}
+	pthread_exit(0);
 }
 // void* drawMovingSprite(void* ){}
 
@@ -424,17 +437,23 @@ void drawGameState(Pixel *pixel,
 	int currentLives = gamestate->lives;
 	// int lives = 3;
 
+	pthread_attr_t attr;
+	pthread_attr_init(&attr);
+	pthread_t bugThread;
+
+	pthread_create(&bugThread, &attr, drawBugsAtPos, gamestate);
+
 	// press: for knowing which button was pressed
 	// i: for tracking the buttons
 	// speed: for holding the time delay to simulate speed ups and downs
 	int press, i, speed;
 
-	while (status)
+	while (status && gamestate->sceneStatus)
 	{
 		int pressed = 0;
 		while (!pressed)
 		{
-			drawBugs(pixel, block, gamestate->bugs, bg);
+			// drawBugs(pixel, block, gamestate->bugs, bg);
 			Read_SNES();
 			for (i = 1; i <= numOfButtons; i++)
 			{
@@ -487,6 +506,11 @@ void drawGameState(Pixel *pixel,
 		// checkCollision()
 		checkGoal(1536, 704, &xD, &yD, &status);
 	}
+	if (status == 0)
+	{
+		pthread_cancel(bugThread);
+	}
+	pthread_join(bugThread, NULL);
 }
 
 /* Draw a pixel */

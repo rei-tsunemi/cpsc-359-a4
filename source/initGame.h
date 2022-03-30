@@ -112,6 +112,7 @@ typedef struct
     int lives;
     int score;
     int timeLeft;
+    int sceneStatus;
 } GameState;
 
 static int baseSpeed = 55000;

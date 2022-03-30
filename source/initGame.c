@@ -63,18 +63,19 @@ void initScene1(GameState *gamestate,
 {
     int i, j;
     // number of sprites to be in this scene
-    numOfSprites->bugs = 2;
+    numOfSprites->bugs = 3;
     numOfSprites->items = 3;
 
-    // i -> position in the struct array
-    // xS -> x start pos
-    // yS -> y start pos
-    // posS -> pos shift (inital position shift, will increment / decrement later) (0 is default)
-    // maxPosS -> the maximum the bug can move
-    // moveD -> move direction
-    // moveV -> up / down (2), left / right (1)
+    // 1). i -> position in the struct array
+    // 2). xS -> x start pos
+    // 3). yS -> y start pos
+    // 4). posS -> pos shift (inital position shift, will increment / decrement later) (0 is default)
+    // 5). maxPosS -> the maximum the bug can move
+    // 6). moveD -> move direction
+    // 7). moveV -> up / down (2), left / right (1)
     changeBugsAtPos(0, 320, 320, 0, 10, -1, 1, bugspots);
     changeBugsAtPos(1, 480, 544, 0, 10, 1, 2, bugspots);
+    changeBugsAtPos(2, 1120, 256, 0, 17, 1, 2, bugspots);
 
     // init important game state stuff
     gamestate->timeLeft = 300;
@@ -82,7 +83,7 @@ void initScene1(GameState *gamestate,
     gamestate->score = 0;
     gamestate->loseCond = 0;
     gamestate->winCond = 0;
-
+    gamestate->sceneStatus = 1;
     // init mario
     gamestate->mario = malloc(sizeof(Mario));
     initMario(gamestate->mario);
