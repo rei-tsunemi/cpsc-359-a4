@@ -384,7 +384,7 @@ void bugCollision(int *xD, int *yD, GameState *gs)
 	}
 }
 
-void drawBugs(Pixel *pixel, Pixel *block, BugSprite *bug, GameState *gs)
+void drawBugs(Pixel *pixel, BugSprite *bug, GameState *gs)
 {
 	int i, colour, currentShift, moveD;
 	int xD, yD, xPrev, yPrev;
@@ -429,12 +429,13 @@ void *drawBugsAtPos(void *param)
 {
 	GameState *gamestate = (GameState *)param;
 	Pixel *pixel = malloc(sizeof(Pixel));
-	Pixel *block = malloc(sizeof(Pixel));
 
 	while (gamestate->sceneStatus)
 	{
-		drawBugs(pixel, block, gamestate->bugs, gamestate);
+		drawBugs(pixel, gamestate->bugs, gamestate);
 	}
+	free(pixel);
+
 	pthread_exit(0);
 }
 // void* drawMovingSprite(void* ){}
