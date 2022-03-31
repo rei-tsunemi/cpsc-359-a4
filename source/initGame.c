@@ -160,3 +160,21 @@ void initNumeric(Numeric *num)
     num->numPtr_8 = (short int *)numImgs2.eight_data;
     num->numPtr_9 = (short int *)numImgs2.nine_data;
 }
+
+void fillDigitArray(short int ** digit){
+    // short int **digit;
+    // Numeric *num = malloc(sizeof(Numeric));
+    
+    *(digit + 0)= (short int *)numImgs.zero_data;
+    *(digit + 1) = (short int *)numImgs.one_data;
+    *(digit + 2) = (short int *)numImgs.two_data;
+    *(digit + 3) = (short int *)numImgs.three_data;
+    *(digit + 4)= (short int *)numImgs.four_data;
+    *(digit + 5) = (short int *)numImgs2.five_data;
+    *(digit + 6) = (short int *)numImgs2.six_data;
+    *(digit + 7) = (short int *)numImgs2.seven_data;
+    *(digit + 8) = (short int *)numImgs2.eight_data;
+    *(digit + 9) = (short int *)numImgs2.nine_data;
+
+    // return digit;   
+}

@@ -149,3 +149,4 @@ void freeGameStateObjects(GameState *gamestate);
 
 void initNumeric(Numeric *num);
 void initAlphabet(Alphabet *alp);
+void fillDigitArray(short int ** digit);
