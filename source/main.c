@@ -224,7 +224,7 @@ void determineButtonPressed(int i, int *x, int *y, int *status, int *speed)
 		else
 			(*x) += gridSize;
 	}
-	delayMicroseconds(*speed);
+	// delayMicroseconds(*speed);
 }
 
 void drawImage(int xD, int yD, int sizeX, int sizeY, Pixel *pixel, short int *image)
@@ -370,7 +370,17 @@ void findBugCurrentSpot(int *xD, int *yD, int *xP, int *yP, BugPositions *bugSpo
 	}
 }
 
-void drawBugs(Pixel *pixel, Pixel *block, BugSprite *bug, int bg[Y_DIM][X_DIM])
+void bugCollision(int *xD, int *yD, GameState *gs)
+{
+	// int mX = gs->mario->xPos;
+	// int mY = gs->mario->yPos;
+	if ((*xD == gs->mario->xPos) && (*yD == gs->mario->yPos))
+	{
+		gs->marioGotHit = 1;
+	}
+}
+
+void drawBugs(Pixel *pixel, Pixel *block, BugSprite *bug, GameState *gs)
 {
 	int i, colour, currentShift, moveD;
 	int xD, yD, xPrev, yPrev;
@@ -381,13 +391,16 @@ void drawBugs(Pixel *pixel, Pixel *block, BugSprite *bug, int bg[Y_DIM][X_DIM])
 
 		currentShift = (bugSpots + i)->posShift;
 		moveD = (bugSpots + i)->moveDirection;
+		bugCollision(&xD, &yD, gs);
+
 		findBugCurrentSpot(&xD, &yD, &xPrev, &yPrev, (bugSpots + i));
 
 		currentShift++;
 
 		// repaint where it was first
-		colour = getColour(bg[yPrev / gridSize][xPrev / gridSize]);
+		colour = getColour(gs->bg[yPrev / gridSize][xPrev / gridSize]);
 		drawBlock(gridSize, gridSize, xPrev, yPrev, colour, pixel);
+		bugCollision(&xD, &yD, gs);
 
 		if (moveD == 1)
 			drawImage(xD, yD, bug->drawSize, bug->drawSize, pixel, bug->imgptr_right);
@@ -416,11 +429,47 @@ void *drawBugsAtPos(void *param)
 
 	while (gamestate->sceneStatus)
 	{
-		drawBugs(pixel, block, gamestate->bugs, gamestate->bg);
+		drawBugs(pixel, block, gamestate->bugs, gamestate);
 	}
 	pthread_exit(0);
 }
 // void* drawMovingSprite(void* ){}
+
+// void didMarioCollideWithAnything(int *xD, int *yD, int *bugCol)
+// {
+// 	// bug x and y positions ( move and previous )
+// 	int bX, bY, bxP, byP;
+// 	int j;
+// 	for (j = 0; j < numOfSprites->bugs; j++)
+// 	{
+// 		findBugCurrentSpot(&bX, &bY, &bxP, &byP, (bugSpots + j));
+// 		checkCollision(xD, yD, &bX, &bY, bugCol);
+// 		checkCollision(xD, yD, &bxP, &byP, bugCol);
+// 		if (*bugCol == 1)
+// 		{
+// 			return;
+// 		}
+// 	}
+// }
+
+void testForCollisions(Mario *mario,
+					   int *xD,
+					   int *yD,
+					   Pixel *pixel,
+					   GameState *gs)
+{
+	if (gs->marioGotHit == 1)
+	{
+		gs->lives--;
+		int colour = getColour(gs->bg[*yD / gridSize][*xD / gridSize]);
+		drawBlock(mario->drawSize, mario->drawSize, *xD, *yD, 0x0000, pixel);
+		*xD = mario->xStart;
+		*yD = mario->yStart;
+		drawImage(*xD, *yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_front);
+		// *bugCol = 0;
+		gs->marioGotHit = 0;
+	}
+}
 
 void drawGameState(Pixel *pixel,
 				   // Sprite *currentSprite,
@@ -433,10 +482,9 @@ void drawGameState(Pixel *pixel,
 	int numOfButtons = 16;	// number of buttons on snes
 	int xD = mario->xStart; // move in x direction
 	int yD = mario->yStart; // move in y direction
-	int bugCol = 0;			// test if collided with a bug
-	int currentLives = gamestate->lives;
+	// int bugCol = 0;			// test if collided with a bug
+	// int currentLives = gamestate->lives;
 	// int lives = 3;
-
 	pthread_attr_t attr;
 	pthread_attr_init(&attr);
 	pthread_t bugThread;
@@ -447,16 +495,19 @@ void drawGameState(Pixel *pixel,
 	// i: for tracking the buttons
 	// speed: for holding the time delay to simulate speed ups and downs
 	int press, i, speed;
-
+	// speed = baseSpeed * 4;
+	speed = baseSpeed;
 	while (status && gamestate->sceneStatus)
 	{
 		int pressed = 0;
 		while (!pressed)
 		{
-			// drawBugs(pixel, block, gamestate->bugs, bg);
 			Read_SNES();
 			for (i = 1; i <= numOfButtons; i++)
 			{
+				// didMarioCollideWithAnything(&xD, &yD, &bugCol);
+				// testForCollisions(mario, &xD, &yD, pixel, &bugCol, &currentLives, gamestate->bg);
+				testForCollisions(mario, &xD, &yD, pixel, gamestate);
 				if ((i >= 4 || i <= 8) && *(globalButtons + i) == 0)
 				{
 					// printf("%d was pressed", i);
@@ -464,13 +515,24 @@ void drawGameState(Pixel *pixel,
 					press = i;
 					break; // break out of the for loop
 				}
+				// test if anything collided during reading input
 			}
 		}
 
-		getCartSpeed(&speed, &xD, &yD, bg); // determine the speed
+		// gamestate->mario->xPos = xD;
+		// gamestate->mario->yPos = yD;
+
+		// getCartSpeed(&speed, &xD, &yD, bg); // determine the speed
 		determineButtonPressed(press, &xD, &yD, &status, &speed);
 
+		gamestate->mario->xPos = xD;
+		gamestate->mario->yPos = yD;
+
+		// didMarioCollideWithAnything(&xPrev, &yPrev, &bugCol);
+		delayMicroseconds(speed); // delay to make it seem likes the cart moves slower
+		// didMarioCollideWithAnything(&xD, &yD, &bugCol);
 		repaint(press, xD, yD, block, bg);
+		testForCollisions(mario, &xD, &yD, pixel, gamestate);
 
 		if (i == 5)
 			drawImage(xD, yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_back);
@@ -481,29 +543,13 @@ void drawGameState(Pixel *pixel,
 		else if (i == 8)
 			drawImage(xD, yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_right);
 
-		// bug x and y positions ( move and previous )
-		int bX, bY, bxP, byP;
-		for (int j = 0; j < numOfSprites->bugs; j++)
-		{
-			findBugCurrentSpot(&bX, &bY, &bxP, &byP, (bugSpots + j));
-			checkCollision(&xD, &yD, &bX, &bY, &bugCol);
-			checkCollision(&xD, &yD, &bxP, &byP, &bugCol);
-			if (bugCol == 1)
-			{
-				// status = 0;
-
-				currentLives--;
-				xD = mario->xStart;
-				yD = mario->yStart;
-				drawImage(xD, yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_front);
-				bugCol = 0;
-				break;
-			}
-		}
 		// exit game if lives == 0
 		// if (currentLives == 0)
 		// 	break;
 		// checkCollision()
+
+		// break;
+		// testForCollisions(mario, &xD, &yD, pixel, &bugCol, &currentLives, gamestate->bg);
 		checkGoal(1536, 704, &xD, &yD, &status);
 	}
 	if (status == 0)

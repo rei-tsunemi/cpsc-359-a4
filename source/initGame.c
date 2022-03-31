@@ -73,9 +73,9 @@ void initScene1(GameState *gamestate,
     // 5). maxPosS -> the maximum the bug can move
     // 6). moveD -> move direction
     // 7). moveV -> up / down (2), left / right (1)
-    changeBugsAtPos(0, 320, 320, 0, 10, -1, 1, bugspots);
+    changeBugsAtPos(0, 320, 320, 0, 15, -1, 1, bugspots);
     changeBugsAtPos(1, 480, 544, 0, 10, 1, 2, bugspots);
-    changeBugsAtPos(2, 1120, 256, 0, 17, 1, 2, bugspots);
+    changeBugsAtPos(2, 1120, 256, 0, 5, 1, 2, bugspots);
 
     // init important game state stuff
     gamestate->timeLeft = 300;
@@ -84,6 +84,7 @@ void initScene1(GameState *gamestate,
     gamestate->loseCond = 0;
     gamestate->winCond = 0;
     gamestate->sceneStatus = 1;
+    gamestate->marioGotHit = 0;
     // init mario
     gamestate->mario = malloc(sizeof(Mario));
     initMario(gamestate->mario);
