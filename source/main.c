@@ -378,6 +378,10 @@ void bugCollision(int *xD, int *yD, GameState *gs)
 	{
 		gs->marioGotHit = 1;
 	}
+	if ((*xD == gs->mario->xPrev) && (*yD == gs->mario->yPrev))
+	{
+		gs->marioGotHit = 1;
+	}
 }
 
 void drawBugs(Pixel *pixel, Pixel *block, BugSprite *bug, GameState *gs)
@@ -435,22 +439,22 @@ void *drawBugsAtPos(void *param)
 }
 // void* drawMovingSprite(void* ){}
 
-// void didMarioCollideWithAnything(int *xD, int *yD, int *bugCol)
-// {
-// 	// bug x and y positions ( move and previous )
-// 	int bX, bY, bxP, byP;
-// 	int j;
-// 	for (j = 0; j < numOfSprites->bugs; j++)
-// 	{
-// 		findBugCurrentSpot(&bX, &bY, &bxP, &byP, (bugSpots + j));
-// 		checkCollision(xD, yD, &bX, &bY, bugCol);
-// 		checkCollision(xD, yD, &bxP, &byP, bugCol);
-// 		if (*bugCol == 1)
-// 		{
-// 			return;
-// 		}
-// 	}
-// }
+void didMarioCollideWithAnything(int *xD, int *yD, GameState *gs)
+{
+	// bug x and y positions ( move and previous )
+	int bX, bY, bxP, byP;
+	int j;
+	for (j = 0; j < numOfSprites->bugs; j++)
+	{
+		findBugCurrentSpot(&bX, &bY, &bxP, &byP, (bugSpots + j));
+		checkCollision(xD, yD, &bX, &bY, &(gs->marioGotHit));
+		checkCollision(xD, yD, &bxP, &byP, &(gs->marioGotHit));
+		if (gs->marioGotHit == 1)
+		{
+			return;
+		}
+	}
+}
 
 void testForCollisions(Mario *mario,
 					   int *xD,
@@ -462,7 +466,8 @@ void testForCollisions(Mario *mario,
 	{
 		gs->lives--;
 		int colour = getColour(gs->bg[*yD / gridSize][*xD / gridSize]);
-		drawBlock(mario->drawSize, mario->drawSize, *xD, *yD, 0x0000, pixel);
+		// drawBlock(mario->drawSize, mario->drawSize, *xD, *yD, 0x0000, pixel);
+		drawBlock(mario->drawSize, mario->drawSize, *xD, *yD, colour, pixel);
 		*xD = mario->xStart;
 		*yD = mario->yStart;
 		drawImage(*xD, *yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_front);
@@ -496,7 +501,7 @@ void drawGameState(Pixel *pixel,
 	// speed: for holding the time delay to simulate speed ups and downs
 	int press, i, speed;
 	// speed = baseSpeed * 4;
-	speed = baseSpeed;
+	// speed = baseSpeed;
 	while (status && gamestate->sceneStatus)
 	{
 		int pressed = 0;
@@ -505,7 +510,7 @@ void drawGameState(Pixel *pixel,
 			Read_SNES();
 			for (i = 1; i <= numOfButtons; i++)
 			{
-				// didMarioCollideWithAnything(&xD, &yD, &bugCol);
+				didMarioCollideWithAnything(&xD, &yD, gamestate);
 				// testForCollisions(mario, &xD, &yD, pixel, &bugCol, &currentLives, gamestate->bg);
 				testForCollisions(mario, &xD, &yD, pixel, gamestate);
 				if ((i >= 4 || i <= 8) && *(globalButtons + i) == 0)
@@ -519,16 +524,16 @@ void drawGameState(Pixel *pixel,
 			}
 		}
 
-		// gamestate->mario->xPos = xD;
-		// gamestate->mario->yPos = yD;
+		gamestate->mario->xPrev = xD;
+		gamestate->mario->yPrev = yD;
 
-		// getCartSpeed(&speed, &xD, &yD, bg); // determine the speed
+		getCartSpeed(&speed, &xD, &yD, bg); // determine the speed
 		determineButtonPressed(press, &xD, &yD, &status, &speed);
 
 		gamestate->mario->xPos = xD;
 		gamestate->mario->yPos = yD;
 
-		// didMarioCollideWithAnything(&xPrev, &yPrev, &bugCol);
+		didMarioCollideWithAnything(&xD, &yD, gamestate);
 		delayMicroseconds(speed); // delay to make it seem likes the cart moves slower
 		// didMarioCollideWithAnything(&xD, &yD, &bugCol);
 		repaint(press, xD, yD, block, bg);

@@ -10,13 +10,19 @@
 void initMario(Mario *mario)
 {
 
+    int x = 192;
+    int y = 128;
     mario->moveSpeed = baseSpeed;
     mario->imgptr_right = (short int *)marioImgs.right_data;
     mario->imgptr_left = (short int *)marioImgs.left_data;
     mario->imgptr_front = (short int *)marioImgs.front_data;
     mario->imgptr_back = (short int *)marioImgs.back_data;
-    mario->xStart = 192;
-    mario->yStart = 128;
+    mario->xStart = x;
+    mario->yStart = y;
+    mario->xPos = x;
+    mario->yPos = y;
+    mario->xPrev = x;
+    mario->yPrev = y;
     mario->drawSize = gridSize;
 }
 
@@ -73,9 +79,9 @@ void initScene1(GameState *gamestate,
     // 5). maxPosS -> the maximum the bug can move
     // 6). moveD -> move direction
     // 7). moveV -> up / down (2), left / right (1)
-    changeBugsAtPos(0, 320, 320, 0, 15, -1, 1, bugspots);
+    changeBugsAtPos(0, 320, 320, 0, 12, -1, 1, bugspots);
     changeBugsAtPos(1, 480, 544, 0, 10, 1, 2, bugspots);
-    changeBugsAtPos(2, 1120, 256, 0, 5, 1, 2, bugspots);
+    changeBugsAtPos(2, 1088, 160, 0, 25, 1, 2, bugspots);
 
     // init important game state stuff
     gamestate->timeLeft = 300;

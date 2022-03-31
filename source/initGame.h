@@ -33,6 +33,14 @@ typedef struct
 
 typedef struct
 {
+    short int *imgptr_front;
+    short int *imgptr_back;
+    short int *imgptr_right;
+    short int *imgptr_left;
+} MarioImg;
+
+typedef struct
+{
     int drawSize;
     int xStart, yStart;
     int xPos, yPos;
@@ -41,6 +49,7 @@ typedef struct
     short int *imgptr_back;
     short int *imgptr_right;
     short int *imgptr_left;
+    int xPrev, yPrev;
 } Mario;
 
 typedef struct
