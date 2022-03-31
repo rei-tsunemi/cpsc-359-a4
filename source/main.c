@@ -438,7 +438,62 @@ void *drawBugsAtPos(void *param)
 
 	pthread_exit(0);
 }
-// void* drawMovingSprite(void* ){}
+
+void drawTime(GameState *gamestate, Pixel *pixel, short int **digitarray){
+	
+	int check = 10;
+	int hundred = (gamestate->timeLeft / 100)%check;
+	int ten = (gamestate->timeLeft / 10)%check;
+	int one = (gamestate-> timeLeft / 1)%check;
+	int i;
+	for (i=0; i<10; i++){
+		if(hundred == i){
+			drawImage(1728, 0, 64, 64, pixel, *(digitarray+i));
+		}
+		if(ten == i){
+			drawImage(1792, 0, 64, 64, pixel,  *(digitarray+i));
+		}
+		if(one == i){
+			drawImage(1856, 0, 64, 64, pixel,  *(digitarray+i));
+		}
+	}
+}
+
+void drawLife(GameState *gamestate, Pixel *pixel, short int **digitarray){
+	while(gamestate->lives >= 0){
+		for(int i=0; i<3; i++){
+			if(gamestate->lives == i){
+				drawImage(768, 0, 64, 64, pixel, *(digitarray+i));
+			}
+		}
+	}
+}
+
+void *timerThread(void *param){
+	GameState *gamestate = (GameState *)param;
+	Pixel *pix = malloc(sizeof(Pixel));
+	Numeric *number = malloc(sizeof(Numeric));
+	short int **digit;
+	digit = (short int **)malloc(sizeof(short int*)*10);
+	fillDigitArray(digit);
+	while(gamestate->timeLeft != -1){
+		drawTime(gamestate, pix, digit);
+		sleep(1);
+		gamestate->timeLeft -= 1;
+	}
+	free(pix);
+	free(number);
+	free(digit);
+	pthread_exit(0);
+}
+
+int scoreCalculate(int time, int life)}{
+	int total;
+	int const = 1;
+	total = time + life;
+	total = total * const;
+	return total;
+}
 
 void didMarioCollideWithAnything(int *xD, int *yD, GameState *gs)
 {
@@ -494,8 +549,10 @@ void drawGameState(Pixel *pixel,
 	pthread_attr_t attr;
 	pthread_attr_init(&attr);
 	pthread_t bugThread;
+	pthread_t timeT;
 
 	pthread_create(&bugThread, &attr, drawBugsAtPos, gamestate);
+	pthread_create(&timeT, &attr, timerThread, gamestate);
 
 	// press: for knowing which button was pressed
 	// i: for tracking the buttons
@@ -561,8 +618,10 @@ void drawGameState(Pixel *pixel,
 	if (status == 0)
 	{
 		pthread_cancel(bugThread);
+		pthread_cancel(timeT);
 	}
 	pthread_join(bugThread, NULL);
+	pthread_join(timeT, NULL);
 }
 
 /* Draw a pixel */
@@ -683,6 +742,7 @@ void determineStage()
 		{
 			drawNewScene(gamestate->bg);
 			drawHeader(alp);
+			drawImage(384, 0, 64, 64, pixel, num->numPtr_1);
 			drawBlock(5, 96, 1536, 704, 0xFF00, block); // draws the finish line
 			drawImage(gamestate->mario->xStart,
 					  gamestate->mario->yStart,
