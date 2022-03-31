@@ -33,14 +33,23 @@ typedef struct
 
 typedef struct
 {
+    short int *imgptr_front;
+    short int *imgptr_back;
+    short int *imgptr_right;
+    short int *imgptr_left;
+} MarioImg;
+
+typedef struct
+{
     int drawSize;
-    int xStart;
-    int yStart;
+    int xStart, yStart;
+    int xPos, yPos;
     int moveSpeed;
     short int *imgptr_front;
     short int *imgptr_back;
     short int *imgptr_right;
     short int *imgptr_left;
+    int xPrev, yPrev;
 } Mario;
 
 typedef struct
@@ -107,12 +116,9 @@ typedef struct
     BugSprite *bugs;
     ItemBlock *itemblocks;
     GoalPost *goal;
-    int winCond;
-    int loseCond;
-    int lives;
-    int score;
-    int timeLeft;
-    int sceneStatus;
+    int winCond, loseCond;
+    int lives, score, timeLeft;
+    int sceneStatus, marioGotHit;
 } GameState;
 
 static int baseSpeed = 55000;
