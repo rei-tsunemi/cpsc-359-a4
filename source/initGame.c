@@ -216,12 +216,14 @@ void initDigitsToDraw(DigitsToDraw *dtd)
     dtd->digits = malloc(sizeof(short int *) * 10); // size of 10 because there are 10 digits
 
     // init lvl digit display
-    dtd->lvlDraw->xPos = 256;
+    // dtd->lvlDraw->xPos = 256;
+    dtd->lvlDraw->xPos = 192;
     dtd->lvlDraw->yPos = 0;
     dtd->lvlDraw->gridSize = 64;
 
     // init lives digits display
-    dtd->livesDraw->xPos = 640;
+    // dtd->livesDraw->xPos = 640;
+    dtd->livesDraw->xPos = 576;
     dtd->livesDraw->yPos = 0;
     dtd->livesDraw->gridSize = 64;
 
@@ -229,6 +231,10 @@ void initDigitsToDraw(DigitsToDraw *dtd)
     dtd->timeDraw->xPos = 1728;
     dtd->timeDraw->yPos = 0;
     dtd->timeDraw->gridSize = 64;
+
+    dtd->scoreDraw->xPos = 1088;
+    dtd->scoreDraw->yPos = 0;
+    dtd->scoreDraw->gridSize = 64;
 
     fillDigitArray(dtd->digits);
 }

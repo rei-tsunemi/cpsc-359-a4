@@ -272,7 +272,7 @@ void drawHeader(Alphabet *word)
 	drawImage(128, 0, dim, dim, pix, word->alpPtr_l);
 	// drawImage(256, 0, dim, dim, pix, word->alpPtr_l);
 	// drawImage(320, 0, dim, dim, pix, word->alpPtr_colon);
-	drawImage(192, 0, dim, dim, pix, word->alpPtr_colon);
+	// drawImage(192, 0, dim, dim, pix, word->alpPtr_colon);
 	// 256
 
 	/* printing all alphabet for life */
@@ -280,7 +280,7 @@ void drawHeader(Alphabet *word)
 	drawImage(384, 0, dim, dim, pix, word->alpPtr_i);
 	drawImage(448, 0, dim, dim, pix, word->alpPtr_f);
 	drawImage(512, 0, dim, dim, pix, word->alpPtr_e);
-	drawImage(576, 0, dim, dim, pix, word->alpPtr_colon);
+	// drawImage(576, 0, dim, dim, pix, word->alpPtr_colon);
 	// drawImage(448, 0, dim, dim, pix, word->alpPtr_l);
 	// drawImage(512, 0, dim, dim, pix, word->alpPtr_i);
 	// drawImage(576, 0, dim, dim, pix, word->alpPtr_f);
@@ -288,12 +288,18 @@ void drawHeader(Alphabet *word)
 	// drawImage(704, 0, dim, dim, pix, word->alpPtr_colon);
 
 	/* printing all alphabet for score */
-	drawImage(832, 0, dim, dim, pix, word->alpPtr_s);
-	drawImage(896, 0, dim, dim, pix, word->alpPtr_c);
-	drawImage(960, 0, dim, dim, pix, word->alpPtr_o);
-	drawImage(1024, 0, dim, dim, pix, word->alpPtr_r);
-	drawImage(1088, 0, dim, dim, pix, word->alpPtr_e);
-	drawImage(1152, 0, dim, dim, pix, word->alpPtr_colon);
+	drawImage(704, 0, dim, dim, pix, word->alpPtr_s);
+	drawImage(768, 0, dim, dim, pix, word->alpPtr_c);
+	drawImage(832, 0, dim, dim, pix, word->alpPtr_o);
+	drawImage(896, 0, dim, dim, pix, word->alpPtr_r);
+	drawImage(960, 0, dim, dim, pix, word->alpPtr_e);
+	drawImage(1024, 0, dim, dim, pix, word->alpPtr_colon);
+	// drawImage(832, 0, dim, dim, pix, word->alpPtr_s);
+	// drawImage(896, 0, dim, dim, pix, word->alpPtr_c);
+	// drawImage(960, 0, dim, dim, pix, word->alpPtr_o);
+	// drawImage(1024, 0, dim, dim, pix, word->alpPtr_r);
+	// drawImage(1088, 0, dim, dim, pix, word->alpPtr_e);
+	// drawImage(1152, 0, dim, dim, pix, word->alpPtr_colon);
 
 	/* printing all alphabet for time */
 	drawImage(1408, 0, dim, dim, pix, word->alpPtr_t);
@@ -438,7 +444,7 @@ void drawTime(GameState *gamestate, Pixel *pixel)
 	int ten = (gamestate->timeLeft / 10) % check;
 	int one = (gamestate->timeLeft / 1) % check;
 
-	int gridSize = digitsToDraw->timeDraw->gridSize;
+	int size = digitsToDraw->timeDraw->gridSize;
 	int xPos = digitsToDraw->timeDraw->xPos;
 	int yPos = digitsToDraw->timeDraw->yPos;
 
@@ -446,13 +452,13 @@ void drawTime(GameState *gamestate, Pixel *pixel)
 	for (i = 0; i < 10; i++)
 	{
 		if (hundred == i)
-			drawImage(xPos, yPos, gridSize, gridSize, pixel, *(digitsToDraw->digits + i));
+			drawImage(xPos, yPos, size, size, pixel, *(digitsToDraw->digits + i));
 
 		if (ten == i)
-			drawImage(xPos + gridSize, yPos, gridSize, gridSize, pixel, *(digitsToDraw->digits + i));
+			drawImage(xPos + size, yPos, size, size, pixel, *(digitsToDraw->digits + i));
 
 		if (one == i)
-			drawImage(xPos + (2 * gridSize), yPos, gridSize, gridSize, pixel, *(digitsToDraw->digits + i));
+			drawImage(xPos + (2 * size), yPos, size, size, pixel, *(digitsToDraw->digits + i));
 	}
 }
 
@@ -482,8 +488,33 @@ void drawLivesDisplay(GameState *gamestate, Pixel *pixel)
 			  *(digitsToDraw->digits + gamestate->lives));
 }
 
-void drawScoreDisplay(GameState *gamestate)
+void drawScoreDisplay(GameState *gamestate, Pixel *pixel)
 {
+	int currentScore = gamestate->score;
+	int check = 10;
+	int thousand = (currentScore / 1000) % check;
+	int hundred = (currentScore / 100) % check;
+	int ten = (currentScore / 10) % check;
+	int one = (currentScore / 1) % check;
+
+	int size = digitsToDraw->scoreDraw->gridSize;
+	int xPos = digitsToDraw->scoreDraw->xPos;
+	int yPos = digitsToDraw->scoreDraw->yPos;
+
+	int i;
+	for (i = 0; i < 10; i++)
+	{
+		if (thousand == i)
+			drawImage(xPos, yPos, size, size, pixel, *(digitsToDraw->digits + i));
+		if (hundred == i)
+			drawImage(xPos + size, yPos, size, size, pixel, *(digitsToDraw->digits + i));
+
+		if (ten == i)
+			drawImage(xPos + (2 * size), yPos, size, size, pixel, *(digitsToDraw->digits + i));
+
+		if (one == i)
+			drawImage(xPos + (3 * size), yPos, size, size, pixel, *(digitsToDraw->digits + i));
+	}
 }
 
 void drawLevelDisplay(int *scene, Pixel *pixel)
@@ -747,6 +778,7 @@ void drawNewScene(GameState *gamestate, Alphabet *alp, int *stage)
 	drawLivesDisplay(gamestate, pixel);
 	// drawImage(384, 0, 64, 64, pixel, *(digits + *stage)); // draws the current stage
 	drawLevelDisplay(stage, pixel);
+	drawScoreDisplay(gamestate, pixel);
 
 	// draws the finish line
 	drawBlock(gamestate->goal->xSize,
