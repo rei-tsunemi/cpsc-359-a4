@@ -103,6 +103,7 @@ typedef struct
 {
     int xPos;
     int yPos;
+    int drawFace;
 
 } ItemBlockPositions;
 

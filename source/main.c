@@ -525,13 +525,16 @@ void drawLevelDisplay(int *scene, Pixel *pixel)
 	drawImage(x, y, grdsz, grdsz, pixel, *(digitsToDraw->digits + *scene));
 }
 
-int scoreCalculate(int time, int life)
+void calcScenceEndScore(GameState *gs, Pixel *pixel)
 {
-	int total;
-	int scoreMultiplier = 1;
-	total = time + life;
-	total = total * scoreMultiplier;
-	return total;
+	float scoreMultiplier = 1.1;
+	float timeBonus = 100;
+	float time = (float)gs->timeLeft;
+	float lives = (float)gs->lives;
+	float currentScore = (float)gs->score;
+	currentScore += (time + (lives * timeBonus)) * scoreMultiplier;
+	gs->score = (int)currentScore;
+	drawScoreDisplay(gamestate, pixel);
 }
 
 void didMarioCollideWithAnything(int *xD, int *yD, GameState *gs)
@@ -787,8 +790,8 @@ void drawNewScene(GameState *gamestate, Alphabet *alp, int *stage)
 			  gamestate->goal->yPos,
 			  gamestate->goal->colour,
 			  pixel);
-	drawImage(gamestate->mario->xStart,
-			  gamestate->mario->yStart,
+	drawImage(gamestate->mario->xPos,
+			  gamestate->mario->yPos,
 			  gridSize,
 			  gridSize,
 			  pixel,
@@ -846,6 +849,7 @@ void determineStage()
 		{
 			drawNewScene(gamestate, alp, &stage);
 			drawGameState(pixel, gamestate, block, gamestate->bg);
+			calcScenceEndScore(gamestate, pixel);
 
 			stage++;
 		}
