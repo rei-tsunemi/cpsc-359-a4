@@ -878,7 +878,12 @@ void screenMenu(int *game)
 				}
 			}
 		}
-		if (i == 5)
+		if (i == 4){
+			gamestate->scene = 1;
+			gamestate->sceneStatus = 1;
+			status = 0;
+			Wait(500000);
+		} else if (i == 5)
 		{
 			drawImage(0, 0, 1024, 1920, pix, startPtr);
 			start = 1;
