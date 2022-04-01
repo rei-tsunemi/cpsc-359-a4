@@ -39,8 +39,11 @@ void initBug(BugSprite *bug)
 void initItemBlock(ItemBlock *itemblock)
 {
     itemblock->drawSize = gridSize;
-    itemblock->imgptr = (short int *)spikeImg.front_data;
     itemblock->itemsDropped = 3; // 4 items are dropped by an item block
+    itemblock->valPtr_F = (short int*) ValuePackImg.packf_data;
+    itemblock->valPtr_s1 = (short int*) ValuePackImg.packs1_data;
+    itemblock->valPtr_s2 = (short int*) ValuePackImg.packs2_data;
+
 }
 
 void initGoalPost(GoalPost *goal)
@@ -54,6 +57,9 @@ void initGoalPost(GoalPost *goal)
 
 void changeItemAtPos(int xS, int yS, ItemBlock *itemblocks)
 {
+    (itemblocks + i)->xStart = xS;
+    (itemblocks + i)->yStart = yS;
+    (itemblocks + i)->drawFace = 0;
 }
 
 void changeBugsAtPos(int i,
@@ -81,7 +87,7 @@ void initScene1(GameState *gamestate,
     int i, j;
     // number of sprites to be in this scene
     numOfSprites->bugs = 3;
-    numOfSprites->items = 3;
+    numOfSprites->items = 1;
 
     // 1). i -> position in the struct array
     // 2). xS -> x start pos
@@ -90,9 +96,11 @@ void initScene1(GameState *gamestate,
     // 5). maxPosS -> the maximum the bug can move
     // 6). moveD -> move direction
     // 7). moveV -> up / down (2), left / right (1)
-    changeBugsAtPos(0, 320, 320, 0, 10, -1, 1, bugspots);
+    changeBugsAtPos(0, 320, 320, 0, 12, -1, 1, bugspots);
     changeBugsAtPos(1, 480, 544, 0, 10, 1, 2, bugspots);
     changeBugsAtPos(2, 1088, 160, 0, 25, 1, 2, bugspots);
+
+    changeItemAtPos(0, 704, 704, itemSpots);
 
     // init important game state stuff
     gamestate->timeLeft = 300;
@@ -100,7 +108,11 @@ void initScene1(GameState *gamestate,
     gamestate->score = 0;
     gamestate->loseCond = 0;
     gamestate->winCond = 0;
-    gamestate->sceneStatus = 1;
+
+    gamestate->sceneStatus = 0;
+    gamestate->scene = 1;
+
+   
     gamestate->marioGotHit = 0;
     // init mario
     gamestate->mario = malloc(sizeof(Mario));

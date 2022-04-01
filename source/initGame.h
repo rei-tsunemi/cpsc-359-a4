@@ -66,6 +66,7 @@ typedef struct
     short int *imgptr_left;
     int xPrev, yPrev;
     int gotHit, canGetHit;
+
 } Mario;
 
 typedef struct
@@ -92,19 +93,18 @@ typedef struct
 
 typedef struct
 {
-    int xStart;
-    int yStart;
     int drawSize;
     int itemsDropped; // number of items that are dropped
-    short int *imgptr;
+    short int *valPtr_F;
+    short int *valPtr_s1;
+    short int *valPtr_s2;
 } ItemBlock;
 
 typedef struct
 {
-    int xPos;
-    int yPos;
+    int xStart;
+    int yStart;
     int drawFace;
-
 } ItemBlockPositions;
 
 typedef struct
@@ -135,7 +135,7 @@ typedef struct
     GoalPost *goal;
     int winCond, loseCond;
     int lives, score, timeLeft;
-    int sceneStatus, marioGotHit;
+    int scene, sceneStatus, marioGotHit;
 } GameState;
 
 static int baseSpeed = 55000;
@@ -151,7 +151,7 @@ void initBug(BugSprite *bug);
 void initItemBlock(ItemBlock *itemblock);
 void initGoalPost(GoalPost *goal);
 
-void changeItemAtPos(int xS, int yS, ItemBlock *itemblocks);
+void changeItemAtPos(int i, int xS, int yS, ItemBlockPositions *itemblocks);
 
 void changeBugsAtPos(int i,
                      int xS,
@@ -173,7 +173,7 @@ void freeGameStateObjects(GameState *gamestate);
 
 void initNumeric(Numeric *num);
 void initAlphabet(Alphabet *alp);
-void fillDigitArray(short int **digit);
 
+void fillDigitArray(short int **digit);
 void freeDigitsToDrawObjects(DigitsToDraw *dtd);
 void initDigitsToDraw(DigitsToDraw *dtd);
