@@ -18,6 +18,11 @@
 #include "titleStart.h"
 #include "titlequit.h"
 
+#include "pauseMenu.h"
+#include "pauseRestart.h"
+#include "pauseQuit.h"
+
+
 /*CPSC 359
  * PETER KUCHEL 30008687
  * REI TSUNEMI 30121202
@@ -65,6 +70,8 @@ typedef struct
 
 struct fbs framebufferstruct;
 void drawPixel(Pixel *pixel);
+void drawPauseMenu(GameState *gamestate, int *x, int *y, Mario *m, int *status);
+void determineStage();
 
 void Init_GPIO()
 {
@@ -191,9 +198,7 @@ void getCartSpeed(int *speed, int *x, int *y, int bg[Y_DIM][X_DIM])
 void determineButtonPressed(int i, int *x, int *y, int *status, int *speed)
 {
 	// int mov = 32;
-	if (i == 4)
-		*status = 0;
-	else if (i == 5)
+	if (i == 5)
 	{
 		if ((*y) == 64)
 			(*y) = (*y);
@@ -364,6 +369,7 @@ void findBugCurrentSpot(int *xD, int *yD, int *xP, int *yP, BugPositions *bugSpo
 
 void bugCollision(int *xD, int *yD, GameState *gs)
 {
+
 	if (gs->mario->canGetHit)
 	{
 		if ((*xD == gs->mario->xPos) && (*yD == gs->mario->yPos))
@@ -432,6 +438,42 @@ void *drawBugsAtPos(void *param)
 		drawBugs(pixel, gamestate->bugs, gamestate);
 	}
 	free(pixel);
+
+	pthread_exit(0);
+}
+
+void drawItems(Pixel *pixel, ItemBlock *itm, GameState *gs){
+	int numOfItems = numOfSprites->items;
+	int i, xD, yD;
+	for(i = 0; i< numOfItems; i++){
+		xD = (itemSpots + i)->xStart;
+		yD = (itemSpots + i)->yStart;
+		int j = (itemSpots + i)->drawFace;
+		// xD = 704;
+		// yD = 704;
+		if(j == 0){
+			drawImage(xD, yD, itm->drawSize, itm->drawSize, pixel, itm->valPtr_F);
+		} else if(j == 1){
+			drawImage(xD, yD, itm->drawSize, itm->drawSize, pixel, itm->valPtr_s1);
+		} else if(j == 2){
+			drawImage(xD, yD, itm->drawSize, itm->drawSize, pixel, itm->valPtr_s2);
+		} 
+		
+		j++;
+		if (j == 3)
+			j = 0;
+		(itemSpots + i)->drawFace = j; 
+	}
+	Wait(100000);
+}
+
+void *valuePackThread(void *param){
+	GameState *gamestate = (GameState *)param;
+	Pixel *pix = malloc(sizeof(Pixel));
+	while (gamestate->sceneStatus){
+		drawItems(pix, gamestate->itemblocks, gamestate);
+	}
+	free(pix);
 
 	pthread_exit(0);
 }
@@ -540,6 +582,7 @@ void didMarioCollideWithAnything(int *xD, int *yD, GameState *gs)
 	int bX, bY, bxP, byP;
 	int j;
 
+
 	// test first if mario collided with bugs
 	for (j = 0; j < numOfSprites->bugs; j++)
 	{
@@ -559,11 +602,73 @@ void didMarioCollideWithAnything(int *xD, int *yD, GameState *gs)
 	}
 }
 
-void testForCollisions(Mario *mario,
+void drawPauseMenu(GameState *gamestate, int *x, int *y, Mario *m, int *status){
+	Pixel *pix = malloc(sizeof(Pixel));
+	Pixel *blk = malloc(sizeof(Pixel));
+	int paused = 1;
+	int numOfButtons = 16; // number of buttons on snes
+	int i;
+	int restart = 0;
+	int quit = 0;
+	int xStart = 420;
+	int yStart = 250;
+
+	short int *pausemenuPtr = (short int *)pause_M.pixel_data;
+	short int *restartPtr = (short int *)pause_R.pixel_data;
+	short int *quitgamePtr = (short int *)pause_Q.pixel_data;
+
+	drawImage(xStart, yStart, 576, 1056, pix, pausemenuPtr);
+	while (paused)
+	{
+		int pressed = 0;
+		while (!pressed)
+		{
+			Read_SNES();
+			for (i = 1; i <= numOfButtons; i++)
+			{
+				if ((i >= 4 || i <= 8) && *(globalButtons + i) == 0)
+				{
+					pressed = 1;
+					break; // break out of the for loop
+				}
+			}
+		}
+		if (i == 4){
+			(*x) = m->xPos;
+			(*y) = m->yPos;
+			paused = 0;
+			status = 0;
+			gamestate->sceneStatus = 1;
+			sleep(1);
+		} else if (i == 5){
+			drawImage(xStart, yStart, 576, 1056, pix, restartPtr);
+			quit = 0;
+			restart = 1;
+		} else if (i == 6) {
+			drawImage(xStart, yStart, 576, 1056, pix, quitgamePtr);
+			quit = 1;
+			restart = 0;
+		} else if (i == 9){
+			if(restart == 1){
+				gamestate->scene = 1;
+				gamestate->sceneStatus = 0;
+				paused = 0;
+			} else if(quit == 1){
+				paused = 0;
+				gamestate->scene = 0;
+				gamestate->sceneStatus = 0;
+			}
+		}
+
+	}
+	free(pix);
+	free(blk);
+}
+ void testForCollisions(Mario *mario,
 					   int *xD,
 					   int *yD,
 					   Pixel *pixel,
-					   GameState *gs,
+             GameState *gs,
 					   int *status,
 					   int *press)
 {
@@ -622,15 +727,18 @@ void drawGameState(Pixel *pixel,
 	pthread_attr_init(&attr);
 	pthread_t bugThread;
 	pthread_t timeT;
+	pthread_t itemThread;
 
 	pthread_create(&bugThread, &attr, drawBugsAtPos, gamestate);
+	pthread_create(&itemThread, &attr, valuePackThread, gamestate);
 	pthread_create(&timeT, &attr, timerThread, gamestate);
 
 	// press: for knowing which button was pressed
 	// i: for tracking the buttons
 	// speed: for holding the time delay to simulate speed ups and downs
 	int press, i, speed;
-
+	// speed = baseSpeed * 4;
+	// speed = baseSpeed;
 	while (status && gamestate->sceneStatus)
 	{
 		int pressed = 0;
@@ -639,9 +747,11 @@ void drawGameState(Pixel *pixel,
 			Read_SNES();
 			for (i = 1; i <= numOfButtons; i++)
 			{
+
 				// test if anything collided while reading input
 				didMarioCollideWithAnything(&xD, &yD, gamestate);
 				testForCollisions(mario, &xD, &yD, pixel, gamestate, &status, &press);
+
 				if ((i >= 4 || i <= 8) && *(globalButtons + i) == 0)
 				{
 					// printf("%d was pressed", i);
@@ -649,6 +759,7 @@ void drawGameState(Pixel *pixel,
 					press = i;
 					break; // break out of the for loop
 				}
+				// test if anything collided during reading input
 			}
 		}
 
@@ -669,8 +780,16 @@ void drawGameState(Pixel *pixel,
 
 		repaint(press, xD, yD, block, gamestate->bg);
 		testForCollisions(mario, &xD, &yD, pixel, gamestate, &status, &press);
-
-		if (press == 5)
+    
+    if (i == 4){
+			pthread_cancel(bugThread);
+			pthread_cancel(timeT);
+			pthread_cancel(itemThread);
+			sleep(1);
+			drawPauseMenu(gamestate, &xD, &yD, mario, &status);
+			continue;
+		}
+		else if (press == 5)
 			drawImage(xD, yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_back);
 		else if (press == 6)
 			drawImage(xD, yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_front);
@@ -683,10 +802,12 @@ void drawGameState(Pixel *pixel,
 	{
 		pthread_cancel(bugThread);
 		pthread_cancel(timeT);
+		pthread_cancel(itemThread);
 	}
 
 	pthread_join(bugThread, NULL);
 	pthread_join(timeT, NULL);
+	pthread_join(itemThread, NULL);
 }
 
 /* Draw a pixel */
@@ -697,7 +818,7 @@ void drawPixel(Pixel *pixel)
 	*((unsigned short int *)(framebufferstruct.fptr + location)) = pixel->color;
 }
 
-void screenMenu(int *game, int *stg)
+void screenMenu(int *game)
 {
 	Pixel *pix;
 	pix = malloc(sizeof(Pixel));
@@ -745,7 +866,8 @@ void screenMenu(int *game, int *stg)
 		{
 			if (start == 1)
 			{
-				(*stg) = 1;
+				gamestate->scene = 1;
+				gamestate->sceneStatus = 1;
 				status = 0;
 			}
 			else if (quit == 1)
@@ -808,6 +930,7 @@ void drawNewScene(GameState *gamestate, Alphabet *alp, int *stage)
 	free(pixel);
 }
 
+
 void determineStage()
 {
 	int maxObjects = 15;
@@ -818,13 +941,15 @@ void determineStage()
 	numOfSprites = malloc(sizeof(SpriteCount));
 
 	initScene1(gamestate, bugSpots, itemSpots, numOfSprites);
+	gamestate->scene = 0;
+	
 	initDigitsToDraw(digitsToDraw);
 
 	Alphabet *alp = malloc(sizeof(Alphabet));
 
+
 	initAlphabet(alp);
 
-	int stage = 0;
 	int gameOn = 1;
 	// int i;
 
@@ -838,16 +963,18 @@ void determineStage()
 
 	while (gameOn)
 	{
-		if (stage == 0)
+		if (gamestate->scene == 0)
 		{
-			screenMenu(&gameOn, &stage);
+			screenMenu(&gameOn);
+			initScene1(gamestate, bugSpots, itemSpots, numOfSprites);
 		}
-		else if (stage == 1)
+		else if (gamestate->scene == 1)
 		{
+
 			drawNewScene(gamestate, alp, &stage);
 			drawGameState(pixel, gamestate, block, gamestate->bg);
-
 			stage++;
+
 		}
 		else
 		{
