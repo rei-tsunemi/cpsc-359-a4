@@ -130,7 +130,7 @@ void initScene1(GameState *gamestate,
 void initScene2(GameState *gamestate)
 {
     // copy background 2 into the gamestate
-    gamestate->timeLeft = 150;
+    gamestate->timeLeft = 200;
     int i, j;
     for (i = 0; i < Y_DIM; i++)
     {
@@ -197,4 +197,44 @@ void fillDigitArray(short int **digit)
     *(digit + 9) = (short int *)numImgs2.nine_data;
 
     // return digit;
+}
+
+void freeDigitsToDrawObjects(DigitsToDraw *dtd)
+{
+    free(dtd->livesDraw);
+    free(dtd->timeDraw);
+    free(dtd->scoreDraw);
+    free(dtd->lvlDraw);
+    free(dtd->digits);
+}
+void initDigitsToDraw(DigitsToDraw *dtd)
+{
+    dtd->livesDraw = malloc(sizeof(DigitPosition));
+    dtd->timeDraw = malloc(sizeof(DigitPosition));
+    dtd->scoreDraw = malloc(sizeof(DigitPosition));
+    dtd->lvlDraw = malloc(sizeof(DigitPosition));
+    dtd->digits = malloc(sizeof(short int *) * 10); // size of 10 because there are 10 digits
+
+    // init lvl digit display
+    // dtd->lvlDraw->xPos = 256;
+    dtd->lvlDraw->xPos = 192;
+    dtd->lvlDraw->yPos = 0;
+    dtd->lvlDraw->gridSize = 64;
+
+    // init lives digits display
+    // dtd->livesDraw->xPos = 640;
+    dtd->livesDraw->xPos = 576;
+    dtd->livesDraw->yPos = 0;
+    dtd->livesDraw->gridSize = 64;
+
+    // init time digit display
+    dtd->timeDraw->xPos = 1728;
+    dtd->timeDraw->yPos = 0;
+    dtd->timeDraw->gridSize = 64;
+
+    dtd->scoreDraw->xPos = 1088;
+    dtd->scoreDraw->yPos = 0;
+    dtd->scoreDraw->gridSize = 64;
+
+    fillDigitArray(dtd->digits);
 }

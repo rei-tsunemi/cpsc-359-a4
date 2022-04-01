@@ -24,6 +24,9 @@
  *
  * ASSIGNMENT 4
  *
+ *
+ * art for mario from: https://www.spriters-resource.com/custom_edited/mariocustoms/sheet/62611/
+ * art for the bugs from:
  * */
 
 #define CLK 11 // clock
@@ -43,10 +46,11 @@ static unsigned int *gpioPtr; // get global gpio pointer
 static int globalButtons[16]; // to store the input value from the buttons / register sample buttons
 
 GameState *gamestate;		   // global gamestate
+DigitsToDraw *digitsToDraw;	   // global struct pointer to draw digits at their correct positions
 BugPositions *bugSpots;		   // global array of bug spots
 ItemBlockPositions *itemSpots; // global array of items spots
 SpriteCount *numOfSprites;	   // global number of sprites
-static short int **digits;	   // global digits for printing to the screen
+// static short int **digits;	   // global digits for printing to the screen
 
 // GPIO setup macros.
 #define INP_GPIO(g) *(gpioPtr + ((g) / 10)) &= ~(7 << (((g) % 10) * 3)) // set input
@@ -261,26 +265,41 @@ void drawHeader(Alphabet *word)
 
 	/* printing all alphabet for level */
 	drawImage(0, 0, dim, dim, pix, word->alpPtr_l);
-	drawImage(64, 0, dim, dim, pix, word->alpPtr_e);
-	drawImage(128, 0, dim, dim, pix, word->alpPtr_v);
-	drawImage(192, 0, dim, dim, pix, word->alpPtr_e);
-	drawImage(256, 0, dim, dim, pix, word->alpPtr_l);
-	drawImage(320, 0, dim, dim, pix, word->alpPtr_colon);
+	// drawImage(64, 0, dim, dim, pix, word->alpPtr_e);
+	drawImage(64, 0, dim, dim, pix, word->alpPtr_v);
+	// drawImage(128, 0, dim, dim, pix, word->alpPtr_v);
+	// drawImage(192, 0, dim, dim, pix, word->alpPtr_e);
+	drawImage(128, 0, dim, dim, pix, word->alpPtr_l);
+	// drawImage(256, 0, dim, dim, pix, word->alpPtr_l);
+	// drawImage(320, 0, dim, dim, pix, word->alpPtr_colon);
+	// drawImage(192, 0, dim, dim, pix, word->alpPtr_colon);
+	// 256
 
 	/* printing all alphabet for life */
-	drawImage(448, 0, dim, dim, pix, word->alpPtr_l);
-	drawImage(512, 0, dim, dim, pix, word->alpPtr_i);
-	drawImage(576, 0, dim, dim, pix, word->alpPtr_f);
-	drawImage(640, 0, dim, dim, pix, word->alpPtr_e);
-	drawImage(704, 0, dim, dim, pix, word->alpPtr_colon);
+	drawImage(320, 0, dim, dim, pix, word->alpPtr_l);
+	drawImage(384, 0, dim, dim, pix, word->alpPtr_i);
+	drawImage(448, 0, dim, dim, pix, word->alpPtr_f);
+	drawImage(512, 0, dim, dim, pix, word->alpPtr_e);
+	// drawImage(576, 0, dim, dim, pix, word->alpPtr_colon);
+	// drawImage(448, 0, dim, dim, pix, word->alpPtr_l);
+	// drawImage(512, 0, dim, dim, pix, word->alpPtr_i);
+	// drawImage(576, 0, dim, dim, pix, word->alpPtr_f);
+	// drawImage(640, 0, dim, dim, pix, word->alpPtr_e);
+	// drawImage(704, 0, dim, dim, pix, word->alpPtr_colon);
 
 	/* printing all alphabet for score */
-	drawImage(832, 0, dim, dim, pix, word->alpPtr_s);
-	drawImage(896, 0, dim, dim, pix, word->alpPtr_c);
-	drawImage(960, 0, dim, dim, pix, word->alpPtr_o);
-	drawImage(1024, 0, dim, dim, pix, word->alpPtr_r);
-	drawImage(1088, 0, dim, dim, pix, word->alpPtr_e);
-	drawImage(1152, 0, dim, dim, pix, word->alpPtr_colon);
+	drawImage(704, 0, dim, dim, pix, word->alpPtr_s);
+	drawImage(768, 0, dim, dim, pix, word->alpPtr_c);
+	drawImage(832, 0, dim, dim, pix, word->alpPtr_o);
+	drawImage(896, 0, dim, dim, pix, word->alpPtr_r);
+	drawImage(960, 0, dim, dim, pix, word->alpPtr_e);
+	drawImage(1024, 0, dim, dim, pix, word->alpPtr_colon);
+	// drawImage(832, 0, dim, dim, pix, word->alpPtr_s);
+	// drawImage(896, 0, dim, dim, pix, word->alpPtr_c);
+	// drawImage(960, 0, dim, dim, pix, word->alpPtr_o);
+	// drawImage(1024, 0, dim, dim, pix, word->alpPtr_r);
+	// drawImage(1088, 0, dim, dim, pix, word->alpPtr_e);
+	// drawImage(1152, 0, dim, dim, pix, word->alpPtr_colon);
 
 	/* printing all alphabet for time */
 	drawImage(1408, 0, dim, dim, pix, word->alpPtr_t);
@@ -351,13 +370,13 @@ void bugCollision(int *xD, int *yD, GameState *gs)
 		{
 			// gs->marioGotHit = 1;
 			gs->mario->gotHit = 1;
-			printf("bug hit mario ");
+			// printf("bug hit mario ");
 		}
 		if ((*xD == gs->mario->xPrev) && (*yD == gs->mario->yPrev))
 		{
 			// gs->marioGotHit = 1;
 			gs->mario->gotHit = 1;
-			printf("bug hit mario ");
+			// printf("bug hit mario ");
 		}
 	}
 }
@@ -424,21 +443,22 @@ void drawTime(GameState *gamestate, Pixel *pixel)
 	int hundred = (gamestate->timeLeft / 100) % check;
 	int ten = (gamestate->timeLeft / 10) % check;
 	int one = (gamestate->timeLeft / 1) % check;
+
+	int size = digitsToDraw->timeDraw->gridSize;
+	int xPos = digitsToDraw->timeDraw->xPos;
+	int yPos = digitsToDraw->timeDraw->yPos;
+
 	int i;
 	for (i = 0; i < 10; i++)
 	{
 		if (hundred == i)
-		{
-			drawImage(1728, 0, 64, 64, pixel, *(digits + i));
-		}
+			drawImage(xPos, yPos, size, size, pixel, *(digitsToDraw->digits + i));
+
 		if (ten == i)
-		{
-			drawImage(1792, 0, 64, 64, pixel, *(digits + i));
-		}
+			drawImage(xPos + size, yPos, size, size, pixel, *(digitsToDraw->digits + i));
+
 		if (one == i)
-		{
-			drawImage(1856, 0, 64, 64, pixel, *(digits + i));
-		}
+			drawImage(xPos + (2 * size), yPos, size, size, pixel, *(digitsToDraw->digits + i));
 	}
 }
 
@@ -446,22 +466,63 @@ void *timerThread(void *param)
 {
 	GameState *gamestate = (GameState *)param;
 	Pixel *pix = malloc(sizeof(Pixel));
-	Numeric *number = malloc(sizeof(Numeric));
-	while (gamestate->timeLeft != -1)
+
+	while (gamestate->timeLeft != -1 && gamestate->sceneStatus)
 	{
 		drawTime(gamestate, pix);
 		sleep(1);
 		gamestate->timeLeft -= 1;
 	}
 	free(pix);
-	free(number);
 	pthread_exit(0);
 }
 
-void drawLife(GameState *gamestate, Pixel *pixel)
+void drawLivesDisplay(GameState *gamestate, Pixel *pixel)
 {
-	drawBlock(768, 0, 64, 64, 0xFFFF, pixel);
-	drawImage(768, 0, 64, 64, pixel, *(digits + gamestate->lives));
+
+	drawImage(digitsToDraw->livesDraw->xPos,
+			  digitsToDraw->livesDraw->yPos,
+			  digitsToDraw->livesDraw->gridSize,
+			  digitsToDraw->livesDraw->gridSize,
+			  pixel,
+			  *(digitsToDraw->digits + gamestate->lives));
+}
+
+void drawScoreDisplay(GameState *gamestate, Pixel *pixel)
+{
+	int currentScore = gamestate->score;
+	int check = 10;
+	int thousand = (currentScore / 1000) % check;
+	int hundred = (currentScore / 100) % check;
+	int ten = (currentScore / 10) % check;
+	int one = (currentScore / 1) % check;
+
+	int size = digitsToDraw->scoreDraw->gridSize;
+	int xPos = digitsToDraw->scoreDraw->xPos;
+	int yPos = digitsToDraw->scoreDraw->yPos;
+
+	int i;
+	for (i = 0; i < 10; i++)
+	{
+		if (thousand == i)
+			drawImage(xPos, yPos, size, size, pixel, *(digitsToDraw->digits + i));
+		if (hundred == i)
+			drawImage(xPos + size, yPos, size, size, pixel, *(digitsToDraw->digits + i));
+
+		if (ten == i)
+			drawImage(xPos + (2 * size), yPos, size, size, pixel, *(digitsToDraw->digits + i));
+
+		if (one == i)
+			drawImage(xPos + (3 * size), yPos, size, size, pixel, *(digitsToDraw->digits + i));
+	}
+}
+
+void drawLevelDisplay(int *scene, Pixel *pixel)
+{
+	int grdsz = digitsToDraw->lvlDraw->gridSize;
+	int x = digitsToDraw->lvlDraw->xPos;
+	int y = digitsToDraw->lvlDraw->yPos;
+	drawImage(x, y, grdsz, grdsz, pixel, *(digitsToDraw->digits + *scene));
 }
 
 int scoreCalculate(int time, int life)
@@ -492,7 +553,7 @@ void didMarioCollideWithAnything(int *xD, int *yD, GameState *gs)
 		}
 		if (gs->marioGotHit == 1)
 		{
-			printf("mario got hit ");
+			// printf("mario got hit ");
 			return;
 		}
 	}
@@ -522,14 +583,16 @@ void testForCollisions(Mario *mario,
 		*yD = mario->yStart;
 		gs->mario->xPos = *xD;
 		gs->mario->yPos = *yD;
+		gs->mario->xPrev = *xD;
+		gs->mario->yPrev = *yD;
 
 		drawImage(*xD, *yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_front);
-		// sleep(1);
+
 		gs->mario->gotHit = 0;
 		gs->mario->canGetHit = 1;
 
 		if (gs->lives >= 0)
-			drawLife(gs, pixel);
+			drawLivesDisplay(gs, pixel);
 	}
 	else // check goal
 	{
@@ -554,9 +617,7 @@ void drawGameState(Pixel *pixel,
 	int numOfButtons = 16;	// number of buttons on snes
 	int xD = mario->xStart; // move in x direction
 	int yD = mario->yStart; // move in y direction
-	// int bugCol = 0;			// test if collided with a bug
-	// int currentLives = gamestate->lives;
-	// int lives = 3;
+
 	pthread_attr_t attr;
 	pthread_attr_init(&attr);
 	pthread_t bugThread;
@@ -578,6 +639,7 @@ void drawGameState(Pixel *pixel,
 			Read_SNES();
 			for (i = 1; i <= numOfButtons; i++)
 			{
+				// test if anything collided while reading input
 				didMarioCollideWithAnything(&xD, &yD, gamestate);
 				testForCollisions(mario, &xD, &yD, pixel, gamestate, &status, &press);
 				if ((i >= 4 || i <= 8) && *(globalButtons + i) == 0)
@@ -587,23 +649,25 @@ void drawGameState(Pixel *pixel,
 					press = i;
 					break; // break out of the for loop
 				}
-				// test if anything collided during reading input
 			}
 		}
 
-		gamestate->mario->xPrev = xD;
-		gamestate->mario->yPrev = yD;
-
-		getCartSpeed(&speed, &xD, &yD, bg);						  // determine the speed
+		// gamestate->mario->xPrev = xD;
+		// gamestate->mario->yPrev = yD;
+		mario->xPrev = xD;
+		mario->yPrev = yD;
+		getCartSpeed(&speed, &xD, &yD, gamestate->bg);			  // determine the speed
 		determineButtonPressed(press, &xD, &yD, &status, &speed); // find which direction mario should go
 
-		gamestate->mario->xPos = xD;
-		gamestate->mario->yPos = yD;
+		// gamestate->mario->xPos = xD;
+		// gamestate->mario->yPos = yD;
+		mario->xPos = xD;
+		mario->yPos = yD;
 
 		didMarioCollideWithAnything(&xD, &yD, gamestate);
 		delayMicroseconds(speed); // delay to make it seem likes the cart moves slower
-		// didMarioCollideWithAnything(&xD, &yD, &bugCol);
-		repaint(press, xD, yD, block, bg);
+
+		repaint(press, xD, yD, block, gamestate->bg);
 		testForCollisions(mario, &xD, &yD, pixel, gamestate, &status, &press);
 
 		if (press == 5)
@@ -614,14 +678,6 @@ void drawGameState(Pixel *pixel,
 			drawImage(xD, yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_left);
 		else if (press == 8)
 			drawImage(xD, yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_right);
-
-		// exit game if lives == 0
-		// if (currentLives == 0)
-		// 	break;
-		// checkCollision()
-
-		// break;
-		// testForCollisions(mario, &xD, &yD, pixel, &bugCol, &currentLives, gamestate->bg);
 	}
 	if (status == 0)
 	{
@@ -719,8 +775,10 @@ void drawNewScene(GameState *gamestate, Alphabet *alp, int *stage)
 		}
 	}
 	drawHeader(alp);
-	drawLife(gamestate, pixel);
-	drawImage(384, 0, 64, 64, pixel, *(digits + *stage)); // draws the current stage
+	drawLivesDisplay(gamestate, pixel);
+	// drawImage(384, 0, 64, 64, pixel, *(digits + *stage)); // draws the current stage
+	drawLevelDisplay(stage, pixel);
+	drawScoreDisplay(gamestate, pixel);
 
 	// draws the finish line
 	drawBlock(gamestate->goal->xSize,
@@ -754,28 +812,17 @@ void determineStage()
 {
 	int maxObjects = 15;
 	gamestate = malloc(sizeof(GameState));
+	digitsToDraw = malloc(sizeof(DigitsToDraw));
 	bugSpots = malloc(sizeof(BugPositions) * maxObjects);
 	itemSpots = malloc(sizeof(ItemBlockPositions) * maxObjects);
 	numOfSprites = malloc(sizeof(SpriteCount));
+
 	initScene1(gamestate, bugSpots, itemSpots, numOfSprites);
-	// Sprite *mario;
-	Alphabet *alp;
+	initDigitsToDraw(digitsToDraw);
 
-	// short int *marioColour = (gamestate->mario->imgptr_front);
-	// printf("here");
-	// for (int i = 0; i < Y_DIM + X_DIM; i++)
-	// {
-	// 	printf("%d", *(marioColour + i));
-	// }
-	// sleep(1);
-	// exit(0);
-
-	alp = malloc(sizeof(Alphabet));
-	digits = (short int **)malloc(sizeof(short int *) * 10); // 10 because of the number of digits
+	Alphabet *alp = malloc(sizeof(Alphabet));
 
 	initAlphabet(alp);
-	fillDigitArray(digits);
-	// initNumeric(num);
 
 	int stage = 0;
 	int gameOn = 1;
@@ -816,13 +863,15 @@ void determineStage()
 	free(alp);
 	// free(num);
 	freeGameStateObjects(gamestate);
+	freeDigitsToDrawObjects(digitsToDraw);
 
 	free(numOfSprites);
 	free(bugSpots);
 	free(itemSpots);
 
 	free(gamestate);
-	free(digits);
+	free(digitsToDraw);
+	// free(digits);
 }
 
 int main()
