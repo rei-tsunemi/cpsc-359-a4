@@ -55,7 +55,7 @@ void initGoalPost(GoalPost *goal)
     goal->colour = 0xFF00;
 }
 
-void changeItemAtPos(int xS, int yS, ItemBlock *itemblocks)
+void changeItemAtPos(int i ,int xS, int yS, ItemBlockPositions *itemblocks)
 {
     (itemblocks + i)->xStart = xS;
     (itemblocks + i)->yStart = yS;
@@ -109,7 +109,7 @@ void initScene1(GameState *gamestate,
     gamestate->loseCond = 0;
     gamestate->winCond = 0;
 
-    gamestate->sceneStatus = 0;
+    gamestate->sceneStatus = 1;
     gamestate->scene = 1;
 
    

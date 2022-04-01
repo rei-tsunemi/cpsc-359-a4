@@ -920,7 +920,7 @@ void drawNewScene(GameState *gamestate, Alphabet *alp)
 	drawHeader(alp);
 	drawLivesDisplay(gamestate, pixel);
 	// drawImage(384, 0, 64, 64, pixel, *(digits + *stage)); // draws the current stage
-	drawLevelDisplay(gamestate->scene, pixel);
+	drawLevelDisplay(&(gamestate->scene), pixel);
 	drawScoreDisplay(gamestate, pixel);
 
 	// draws the finish line
@@ -961,7 +961,7 @@ void determineStage()
 	numOfSprites = malloc(sizeof(SpriteCount));
 
 	initScene1(gamestate, bugSpots, itemSpots, numOfSprites);
-	gamestate->scene = 0;
+	// gamestate->scene = 0;
 
 	initDigitsToDraw(digitsToDraw);
 
