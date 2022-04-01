@@ -49,9 +49,9 @@
 static unsigned int *gpioPtr; // get global gpio pointer
 static int globalButtons[16]; // to store the input value from the buttons / register sample buttons
 
-GameState *gamestate;		   // global gamestate
-DigitsToDraw *digitsToDraw;	   // global struct pointer to draw digits at their correct positions
-BugPositions *bugSpots;		   // global array of bug spots
+GameState *gamestate;		// global gamestate
+DigitsToDraw *digitsToDraw; // global struct pointer to draw digits at their correct positions
+// BugPositions *bugSpots;		   // global array of bug spots
 ItemBlockPositions *itemSpots; // global array of items spots
 SpriteCount *numOfSprites;	   // global number of sprites
 // static short int **digits;	   // global digits for printing to the screen
@@ -386,20 +386,22 @@ void bugCollision(int *xD, int *yD, GameState *gs)
 	}
 }
 
-void drawBugs(Pixel *pixel, BugSprite *bug, GameState *gs)
+// void drawBugs(Pixel *pixel, BugSprite *bug, GameState *gs)
+void drawBugs(Pixel *pixel, GameState *gs)
 {
 	int i, colour, currentShift, moveD;
 	int xD, yD, xPrev, yPrev;
 	int bugsToPrint = numOfSprites->bugs;
+	BugSprite *bug = gs->bugs;
 	// int offSet = gridSize;
 	for (i = 0; i < bugsToPrint; i++)
 	{
 
-		currentShift = (bugSpots + i)->posShift;
-		moveD = (bugSpots + i)->moveDirection;
+		currentShift = (gs->bugSpots + i)->posShift;
+		moveD = (gs->bugSpots + i)->moveDirection;
 		bugCollision(&xD, &yD, gs);
 
-		findBugCurrentSpot(&xD, &yD, &xPrev, &yPrev, (bugSpots + i));
+		findBugCurrentSpot(&xD, &yD, &xPrev, &yPrev, (gs->bugSpots + i));
 
 		currentShift++;
 
@@ -413,16 +415,16 @@ void drawBugs(Pixel *pixel, BugSprite *bug, GameState *gs)
 		else
 			drawImage(xD, yD, bug->drawSize, bug->drawSize, pixel, bug->imgptr_left);
 
-		if ((currentShift + 1) == (bugSpots + i)->maxPosShift)
+		if ((currentShift + 1) == (gs->bugSpots + i)->maxPosShift)
 		{
 			currentShift = 0;
 			moveD *= -1;
-			(bugSpots + i)->xStart = xD;
-			(bugSpots + i)->yStart = yD;
+			(gs->bugSpots + i)->xStart = xD;
+			(gs->bugSpots + i)->yStart = yD;
 		}
 
-		(bugSpots + i)->posShift = currentShift;
-		(bugSpots + i)->moveDirection = moveD;
+		(gs->bugSpots + i)->posShift = currentShift;
+		(gs->bugSpots + i)->moveDirection = moveD;
 	}
 	delayMicroseconds(35000);
 }
@@ -434,7 +436,8 @@ void *drawBugsAtPos(void *param)
 
 	while (gamestate->sceneStatus)
 	{
-		drawBugs(pixel, gamestate->bugs, gamestate);
+		// drawBugs(pixel, gamestate->bugs, gamestate);
+		drawBugs(pixel, gamestate);
 	}
 	free(pixel);
 
@@ -596,7 +599,8 @@ void didMarioCollideWithAnything(int *xD, int *yD, GameState *gs)
 	// test first if mario collided with bugs
 	for (j = 0; j < numOfSprites->bugs; j++)
 	{
-		findBugCurrentSpot(&bX, &bY, &bxP, &byP, (bugSpots + j));
+		// findBugCurrentSpot(&bX, &bY, &bxP, &byP, (bugSpots + j));
+		findBugCurrentSpot(&bX, &bY, &bxP, &byP, (gs->bugSpots + j));
 		// checkCollision(xD, yD, &bX, &bY, &(gs->marioGotHit));
 		// checkCollision(xD, yD, &bxP, &byP, &(gs->marioGotHit));
 		if (gs->mario->canGetHit)
@@ -604,7 +608,7 @@ void didMarioCollideWithAnything(int *xD, int *yD, GameState *gs)
 			checkCollision(xD, yD, &bX, &bY, &(gs->mario->gotHit));
 			checkCollision(xD, yD, &bxP, &byP, &(gs->mario->gotHit));
 		}
-		if (gs->marioGotHit == 1)
+		if (gs->mario->gotHit == 1)
 		{
 			// printf("mario got hit ");
 			return;
@@ -937,12 +941,19 @@ void drawNewScene(GameState *gamestate, Alphabet *alp)
 			  pixel,
 			  gamestate->mario->imgptr_front);
 
-	int bugsInScene = numOfSprites->bugs;
+	// int bugsInScene = numOfSprites->bugs;
+	int bugsInScene = gamestate->spritesForScene->bugs;
 	int i;
 	for (i = 0; i < bugsInScene; i++)
 	{
-		drawImage(bugSpots->xStart,
-				  bugSpots->yStart,
+		// drawImage(bugSpots->xStart,
+		// 		  bugSpots->yStart,
+		// 		  gridSize,
+		// 		  gridSize,
+		// 		  pixel,
+		// 		  gamestate->bugs->imgptr_left);
+		drawImage(gamestate->bugSpots->xStart,
+				  gamestate->bugSpots->yStart,
 				  gridSize,
 				  gridSize,
 				  pixel,
@@ -956,11 +967,9 @@ void determineStage()
 	int maxObjects = 15;
 	gamestate = malloc(sizeof(GameState));
 	digitsToDraw = malloc(sizeof(DigitsToDraw));
-	bugSpots = malloc(sizeof(BugPositions) * maxObjects);
 	itemSpots = malloc(sizeof(ItemBlockPositions) * maxObjects);
 	numOfSprites = malloc(sizeof(SpriteCount));
 
-	initScene1(gamestate, bugSpots, itemSpots, numOfSprites);
 	gamestate->scene = 0;
 
 	initDigitsToDraw(digitsToDraw);
@@ -985,11 +994,12 @@ void determineStage()
 		if (gamestate->scene == 0)
 		{
 			screenMenu(&gameOn);
-			initScene1(gamestate, bugSpots, itemSpots, numOfSprites);
 		}
 		else if (gamestate->scene == 1)
 		{
 
+			// initScene1(gamestate, bugSpots, itemSpots, numOfSprites);
+			initScene1(gamestate, itemSpots, numOfSprites);
 			drawNewScene(gamestate, alp);
 			drawGameState(pixel, gamestate, block, gamestate->bg);
 			calcScenceEndScore(gamestate, pixel);
@@ -1002,7 +1012,6 @@ void determineStage()
 			gameOn = 0;
 		}
 	}
-	// drawImage(100, 100, pixel, imagePtr);
 
 	/* free pixel's allocated memory */
 	free(pixel);
@@ -1013,12 +1022,10 @@ void determineStage()
 	freeDigitsToDrawObjects(digitsToDraw);
 
 	free(numOfSprites);
-	free(bugSpots);
 	free(itemSpots);
 
 	free(gamestate);
 	free(digitsToDraw);
-	// free(digits);
 }
 
 int main()
