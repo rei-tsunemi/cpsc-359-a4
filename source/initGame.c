@@ -24,6 +24,8 @@ void initMario(Mario *mario)
     mario->xPrev = x;
     mario->yPrev = y;
     mario->drawSize = gridSize;
+    mario->canGetHit = 1;
+    mario->gotHit = 0;
 }
 
 void initBug(BugSprite *bug)
@@ -44,7 +46,16 @@ void initItemBlock(ItemBlock *itemblock)
 
 }
 
-void changeItemAtPos(int i, int xS, int yS, ItemBlockPositions *itemblocks)
+void initGoalPost(GoalPost *goal)
+{
+    goal->xSize = 5;
+    goal->ySize = 96;
+    goal->xPos = 1792;
+    goal->yPos = 704;
+    goal->colour = 0xFF00;
+}
+
+void changeItemAtPos(int xS, int yS, ItemBlock *itemblocks)
 {
     (itemblocks + i)->xStart = xS;
     (itemblocks + i)->yStart = yS;
@@ -97,8 +108,11 @@ void initScene1(GameState *gamestate,
     gamestate->score = 0;
     gamestate->loseCond = 0;
     gamestate->winCond = 0;
+
     gamestate->sceneStatus = 0;
     gamestate->scene = 1;
+
+   
     gamestate->marioGotHit = 0;
     // init mario
     gamestate->mario = malloc(sizeof(Mario));
@@ -113,6 +127,7 @@ void initScene1(GameState *gamestate,
 
     // init the goal post
     gamestate->goal = malloc(sizeof(GoalPost));
+    initGoalPost(gamestate->goal);
 
     // copy background 1 into the gamestate
     for (i = 0; i < Y_DIM; i++)
@@ -127,7 +142,7 @@ void initScene1(GameState *gamestate,
 void initScene2(GameState *gamestate)
 {
     // copy background 2 into the gamestate
-    gamestate->timeLeft = 150;
+    gamestate->timeLeft = 200;
     int i, j;
     for (i = 0; i < Y_DIM; i++)
     {
@@ -177,20 +192,61 @@ void initNumeric(Numeric *num)
     num->numPtr_9 = (short int *)numImgs2.nine_data;
 }
 
-void fillDigitArray(short int ** digit){
+void fillDigitArray(short int **digit)
+{
     // short int **digit;
     // Numeric *num = malloc(sizeof(Numeric));
-    
-    *(digit + 0)= (short int *)numImgs.zero_data;
+
+    *(digit + 0) = (short int *)numImgs.zero_data;
     *(digit + 1) = (short int *)numImgs.one_data;
     *(digit + 2) = (short int *)numImgs.two_data;
     *(digit + 3) = (short int *)numImgs.three_data;
-    *(digit + 4)= (short int *)numImgs.four_data;
+    *(digit + 4) = (short int *)numImgs.four_data;
     *(digit + 5) = (short int *)numImgs2.five_data;
     *(digit + 6) = (short int *)numImgs2.six_data;
     *(digit + 7) = (short int *)numImgs2.seven_data;
     *(digit + 8) = (short int *)numImgs2.eight_data;
     *(digit + 9) = (short int *)numImgs2.nine_data;
 
-    // return digit;   
+    // return digit;
+}
+
+void freeDigitsToDrawObjects(DigitsToDraw *dtd)
+{
+    free(dtd->livesDraw);
+    free(dtd->timeDraw);
+    free(dtd->scoreDraw);
+    free(dtd->lvlDraw);
+    free(dtd->digits);
+}
+void initDigitsToDraw(DigitsToDraw *dtd)
+{
+    dtd->livesDraw = malloc(sizeof(DigitPosition));
+    dtd->timeDraw = malloc(sizeof(DigitPosition));
+    dtd->scoreDraw = malloc(sizeof(DigitPosition));
+    dtd->lvlDraw = malloc(sizeof(DigitPosition));
+    dtd->digits = malloc(sizeof(short int *) * 10); // size of 10 because there are 10 digits
+
+    // init lvl digit display
+    // dtd->lvlDraw->xPos = 256;
+    dtd->lvlDraw->xPos = 192;
+    dtd->lvlDraw->yPos = 0;
+    dtd->lvlDraw->gridSize = 64;
+
+    // init lives digits display
+    // dtd->livesDraw->xPos = 640;
+    dtd->livesDraw->xPos = 576;
+    dtd->livesDraw->yPos = 0;
+    dtd->livesDraw->gridSize = 64;
+
+    // init time digit display
+    dtd->timeDraw->xPos = 1728;
+    dtd->timeDraw->yPos = 0;
+    dtd->timeDraw->gridSize = 64;
+
+    dtd->scoreDraw->xPos = 1088;
+    dtd->scoreDraw->yPos = 0;
+    dtd->scoreDraw->gridSize = 64;
+
+    fillDigitArray(dtd->digits);
 }
