@@ -34,7 +34,17 @@ typedef struct
 typedef struct
 {
     int xPos, yPos;
-} changingValues;
+    int gridSize;
+} DigitPosition;
+
+typedef struct
+{
+    DigitPosition *timeDraw;
+    DigitPosition *scoreDraw;
+    DigitPosition *livesDraw;
+    DigitPosition *lvlDraw;
+    short int **digits;
+} DigitsToDraw;
 
 typedef struct
 {
@@ -163,3 +173,6 @@ void freeGameStateObjects(GameState *gamestate);
 void initNumeric(Numeric *num);
 void initAlphabet(Alphabet *alp);
 void fillDigitArray(short int **digit);
+
+void freeDigitsToDrawObjects(DigitsToDraw *dtd);
+void initDigitsToDraw(DigitsToDraw *dtd);
