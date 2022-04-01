@@ -33,14 +33,23 @@ typedef struct
 
 typedef struct
 {
+    short int *imgptr_front;
+    short int *imgptr_back;
+    short int *imgptr_right;
+    short int *imgptr_left;
+} MarioImg;
+
+typedef struct
+{
     int drawSize;
-    int xStart;
-    int yStart;
+    int xStart, yStart;
+    int xPos, yPos;
     int moveSpeed;
     short int *imgptr_front;
     short int *imgptr_back;
     short int *imgptr_right;
     short int *imgptr_left;
+    int xPrev, yPrev;
 } Mario;
 
 typedef struct
@@ -67,18 +76,18 @@ typedef struct
 
 typedef struct
 {
-    int xStart;
-    int yStart;
     int drawSize;
     int itemsDropped; // number of items that are dropped
-    short int *imgptr;
+    short int *valPtr_F;
+    short int *valPtr_s1;
+    short int *valPtr_s2;
 } ItemBlock;
 
 typedef struct
 {
-    int xPos;
-    int yPos;
-
+    int xStart;
+    int yStart;
+    int drawFace;
 } ItemBlockPositions;
 
 typedef struct
@@ -107,12 +116,9 @@ typedef struct
     BugSprite *bugs;
     ItemBlock *itemblocks;
     GoalPost *goal;
-    int winCond;
-    int loseCond;
-    int lives;
-    int score;
-    int timeLeft;
-    int sceneStatus;
+    int winCond, loseCond;
+    int lives, score, timeLeft;
+    int scene, sceneStatus, marioGotHit;
 } GameState;
 
 static int baseSpeed = 55000;
@@ -127,7 +133,7 @@ void initBug(BugSprite *bug);
 
 void initItemBlock(ItemBlock *itemblock);
 
-void changeItemAtPos(int xS, int yS, ItemBlock *itemblocks);
+void changeItemAtPos(int i, int xS, int yS, ItemBlockPositions *itemblocks);
 
 void changeBugsAtPos(int i,
                      int xS,
