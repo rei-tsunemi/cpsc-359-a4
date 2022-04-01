@@ -24,6 +24,8 @@ void initMario(Mario *mario)
     mario->xPrev = x;
     mario->yPrev = y;
     mario->drawSize = gridSize;
+    mario->canGetHit = 1;
+    mario->gotHit = 0;
 }
 
 void initBug(BugSprite *bug)
@@ -39,6 +41,15 @@ void initItemBlock(ItemBlock *itemblock)
     itemblock->drawSize = gridSize;
     itemblock->imgptr = (short int *)spikeImg.front_data;
     itemblock->itemsDropped = 3; // 4 items are dropped by an item block
+}
+
+void initGoalPost(GoalPost *goal)
+{
+    goal->xSize = 5;
+    goal->ySize = 96;
+    goal->xPos = 1792;
+    goal->yPos = 704;
+    goal->colour = 0xFF00;
 }
 
 void changeItemAtPos(int xS, int yS, ItemBlock *itemblocks)
@@ -79,7 +90,7 @@ void initScene1(GameState *gamestate,
     // 5). maxPosS -> the maximum the bug can move
     // 6). moveD -> move direction
     // 7). moveV -> up / down (2), left / right (1)
-    changeBugsAtPos(0, 320, 320, 0, 12, -1, 1, bugspots);
+    changeBugsAtPos(0, 320, 320, 0, 10, -1, 1, bugspots);
     changeBugsAtPos(1, 480, 544, 0, 10, 1, 2, bugspots);
     changeBugsAtPos(2, 1088, 160, 0, 25, 1, 2, bugspots);
 
@@ -104,6 +115,7 @@ void initScene1(GameState *gamestate,
 
     // init the goal post
     gamestate->goal = malloc(sizeof(GoalPost));
+    initGoalPost(gamestate->goal);
 
     // copy background 1 into the gamestate
     for (i = 0; i < Y_DIM; i++)
@@ -168,20 +180,21 @@ void initNumeric(Numeric *num)
     num->numPtr_9 = (short int *)numImgs2.nine_data;
 }
 
-void fillDigitArray(short int ** digit){
+void fillDigitArray(short int **digit)
+{
     // short int **digit;
     // Numeric *num = malloc(sizeof(Numeric));
-    
-    *(digit + 0)= (short int *)numImgs.zero_data;
+
+    *(digit + 0) = (short int *)numImgs.zero_data;
     *(digit + 1) = (short int *)numImgs.one_data;
     *(digit + 2) = (short int *)numImgs.two_data;
     *(digit + 3) = (short int *)numImgs.three_data;
-    *(digit + 4)= (short int *)numImgs.four_data;
+    *(digit + 4) = (short int *)numImgs.four_data;
     *(digit + 5) = (short int *)numImgs2.five_data;
     *(digit + 6) = (short int *)numImgs2.six_data;
     *(digit + 7) = (short int *)numImgs2.seven_data;
     *(digit + 8) = (short int *)numImgs2.eight_data;
     *(digit + 9) = (short int *)numImgs2.nine_data;
 
-    // return digit;   
+    // return digit;
 }

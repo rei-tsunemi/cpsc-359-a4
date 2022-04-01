@@ -46,6 +46,7 @@ GameState *gamestate;		   // global gamestate
 BugPositions *bugSpots;		   // global array of bug spots
 ItemBlockPositions *itemSpots; // global array of items spots
 SpriteCount *numOfSprites;	   // global number of sprites
+static short int **digits;	   // global digits for printing to the screen
 
 // GPIO setup macros.
 #define INP_GPIO(g) *(gpioPtr + ((g) / 10)) &= ~(7 << (((g) % 10) * 3)) // set input
@@ -172,14 +173,6 @@ void checkCollision(int *x, int *y, int *xToCheck, int *yToCheck, int *flag)
 	}
 }
 
-void checkGoal(int posX, int posY, int *x, int *y, int *status)
-{
-	if (((*x >= posX) && (*x <= posX + 5)) && ((*y >= posY) && (*y <= posY + 90)))
-	{
-		*status = 0;
-	}
-}
-
 void getCartSpeed(int *speed, int *x, int *y, int bg[Y_DIM][X_DIM])
 {
 	int colourPos = bg[*y / gridSize][*x / gridSize];
@@ -299,26 +292,6 @@ void drawHeader(Alphabet *word)
 	free(pix);
 }
 
-void drawNewScene(int bg[Y_DIM][X_DIM])
-{
-	// int blockSize = 32;
-	int xSize = 60;
-	int ySize = 33;
-	Pixel *scenePixel = malloc(sizeof(Pixel));
-	int yOff, xOff;
-	for (int y = 0; y < ySize; y++)
-	{
-		yOff = y * gridSize;
-		for (int x = 0; x < xSize; x++)
-		{
-			xOff = x * gridSize;
-			int colour = getColour(bg[y][x]);
-			drawBlock(gridSize, gridSize, xOff, yOff, colour, scenePixel);
-		}
-	}
-	free(scenePixel);
-}
-
 void repaint(int i, int xD, int yD, Pixel *pixel, int bg[Y_DIM][X_DIM])
 {
 	// int gridDim = 32;
@@ -372,15 +345,20 @@ void findBugCurrentSpot(int *xD, int *yD, int *xP, int *yP, BugPositions *bugSpo
 
 void bugCollision(int *xD, int *yD, GameState *gs)
 {
-	// int mX = gs->mario->xPos;
-	// int mY = gs->mario->yPos;
-	if ((*xD == gs->mario->xPos) && (*yD == gs->mario->yPos))
+	if (gs->mario->canGetHit)
 	{
-		gs->marioGotHit = 1;
-	}
-	if ((*xD == gs->mario->xPrev) && (*yD == gs->mario->yPrev))
-	{
-		gs->marioGotHit = 1;
+		if ((*xD == gs->mario->xPos) && (*yD == gs->mario->yPos))
+		{
+			// gs->marioGotHit = 1;
+			gs->mario->gotHit = 1;
+			printf("bug hit mario ");
+		}
+		if ((*xD == gs->mario->xPrev) && (*yD == gs->mario->yPrev))
+		{
+			// gs->marioGotHit = 1;
+			gs->mario->gotHit = 1;
+			printf("bug hit mario ");
+		}
 	}
 }
 
@@ -439,59 +417,59 @@ void *drawBugsAtPos(void *param)
 	pthread_exit(0);
 }
 
-void drawTime(GameState *gamestate, Pixel *pixel, short int **digitarray){
-	
+void drawTime(GameState *gamestate, Pixel *pixel)
+{
+
 	int check = 10;
-	int hundred = (gamestate->timeLeft / 100)%check;
-	int ten = (gamestate->timeLeft / 10)%check;
-	int one = (gamestate-> timeLeft / 1)%check;
+	int hundred = (gamestate->timeLeft / 100) % check;
+	int ten = (gamestate->timeLeft / 10) % check;
+	int one = (gamestate->timeLeft / 1) % check;
 	int i;
-	for (i=0; i<10; i++){
-		if(hundred == i){
-			drawImage(1728, 0, 64, 64, pixel, *(digitarray+i));
+	for (i = 0; i < 10; i++)
+	{
+		if (hundred == i)
+		{
+			drawImage(1728, 0, 64, 64, pixel, *(digits + i));
 		}
-		if(ten == i){
-			drawImage(1792, 0, 64, 64, pixel,  *(digitarray+i));
+		if (ten == i)
+		{
+			drawImage(1792, 0, 64, 64, pixel, *(digits + i));
 		}
-		if(one == i){
-			drawImage(1856, 0, 64, 64, pixel,  *(digitarray+i));
-		}
-	}
-}
-
-void drawLife(GameState *gamestate, Pixel *pixel, short int **digitarray){
-	while(gamestate->lives >= 0){
-		for(int i=0; i<3; i++){
-			if(gamestate->lives == i){
-				drawImage(768, 0, 64, 64, pixel, *(digitarray+i));
-			}
+		if (one == i)
+		{
+			drawImage(1856, 0, 64, 64, pixel, *(digits + i));
 		}
 	}
 }
 
-void *timerThread(void *param){
+void *timerThread(void *param)
+{
 	GameState *gamestate = (GameState *)param;
 	Pixel *pix = malloc(sizeof(Pixel));
 	Numeric *number = malloc(sizeof(Numeric));
-	short int **digit;
-	digit = (short int **)malloc(sizeof(short int*)*10);
-	fillDigitArray(digit);
-	while(gamestate->timeLeft != -1){
-		drawTime(gamestate, pix, digit);
+	while (gamestate->timeLeft != -1)
+	{
+		drawTime(gamestate, pix);
 		sleep(1);
 		gamestate->timeLeft -= 1;
 	}
 	free(pix);
 	free(number);
-	free(digit);
 	pthread_exit(0);
 }
 
-int scoreCalculate(int time, int life)}{
+void drawLife(GameState *gamestate, Pixel *pixel)
+{
+	drawBlock(768, 0, 64, 64, 0xFFFF, pixel);
+	drawImage(768, 0, 64, 64, pixel, *(digits + gamestate->lives));
+}
+
+int scoreCalculate(int time, int life)
+{
 	int total;
-	int const = 1;
+	int scoreMultiplier = 1;
 	total = time + life;
-	total = total * const;
+	total = total * scoreMultiplier;
 	return total;
 }
 
@@ -500,13 +478,21 @@ void didMarioCollideWithAnything(int *xD, int *yD, GameState *gs)
 	// bug x and y positions ( move and previous )
 	int bX, bY, bxP, byP;
 	int j;
+
+	// test first if mario collided with bugs
 	for (j = 0; j < numOfSprites->bugs; j++)
 	{
 		findBugCurrentSpot(&bX, &bY, &bxP, &byP, (bugSpots + j));
-		checkCollision(xD, yD, &bX, &bY, &(gs->marioGotHit));
-		checkCollision(xD, yD, &bxP, &byP, &(gs->marioGotHit));
+		// checkCollision(xD, yD, &bX, &bY, &(gs->marioGotHit));
+		// checkCollision(xD, yD, &bxP, &byP, &(gs->marioGotHit));
+		if (gs->mario->canGetHit)
+		{
+			checkCollision(xD, yD, &bX, &bY, &(gs->mario->gotHit));
+			checkCollision(xD, yD, &bxP, &byP, &(gs->mario->gotHit));
+		}
 		if (gs->marioGotHit == 1)
 		{
+			printf("mario got hit ");
 			return;
 		}
 	}
@@ -516,19 +502,44 @@ void testForCollisions(Mario *mario,
 					   int *xD,
 					   int *yD,
 					   Pixel *pixel,
-					   GameState *gs)
+					   GameState *gs,
+					   int *status,
+					   int *press)
 {
-	if (gs->marioGotHit == 1)
+	if (gs->mario->gotHit == 1)
 	{
-		gs->lives--;
+
+		gs->mario->canGetHit = 0;
+		int l = gs->lives;
+		l--;
+		gs->lives = l;
+
+		// redraw where mario is atm as background
 		int colour = getColour(gs->bg[*yD / gridSize][*xD / gridSize]);
-		// drawBlock(mario->drawSize, mario->drawSize, *xD, *yD, 0x0000, pixel);
 		drawBlock(mario->drawSize, mario->drawSize, *xD, *yD, colour, pixel);
+
 		*xD = mario->xStart;
 		*yD = mario->yStart;
+		gs->mario->xPos = *xD;
+		gs->mario->yPos = *yD;
+
 		drawImage(*xD, *yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_front);
-		// *bugCol = 0;
-		gs->marioGotHit = 0;
+		// sleep(1);
+		gs->mario->gotHit = 0;
+		gs->mario->canGetHit = 1;
+
+		if (gs->lives >= 0)
+			drawLife(gs, pixel);
+	}
+	else // check goal
+	{
+		if ((*xD >= gs->goal->xPos) &&
+			(*xD <= (gs->goal->xPos + gs->goal->xSize)) &&
+			(*yD >= gs->goal->yPos) &&
+			(*yD <= (gs->goal->yPos + gs->goal->ySize)))
+		{
+			*status = 0;
+		}
 	}
 }
 
@@ -558,8 +569,7 @@ void drawGameState(Pixel *pixel,
 	// i: for tracking the buttons
 	// speed: for holding the time delay to simulate speed ups and downs
 	int press, i, speed;
-	// speed = baseSpeed * 4;
-	// speed = baseSpeed;
+
 	while (status && gamestate->sceneStatus)
 	{
 		int pressed = 0;
@@ -569,8 +579,7 @@ void drawGameState(Pixel *pixel,
 			for (i = 1; i <= numOfButtons; i++)
 			{
 				didMarioCollideWithAnything(&xD, &yD, gamestate);
-				// testForCollisions(mario, &xD, &yD, pixel, &bugCol, &currentLives, gamestate->bg);
-				testForCollisions(mario, &xD, &yD, pixel, gamestate);
+				testForCollisions(mario, &xD, &yD, pixel, gamestate, &status, &press);
 				if ((i >= 4 || i <= 8) && *(globalButtons + i) == 0)
 				{
 					// printf("%d was pressed", i);
@@ -585,8 +594,8 @@ void drawGameState(Pixel *pixel,
 		gamestate->mario->xPrev = xD;
 		gamestate->mario->yPrev = yD;
 
-		getCartSpeed(&speed, &xD, &yD, bg); // determine the speed
-		determineButtonPressed(press, &xD, &yD, &status, &speed);
+		getCartSpeed(&speed, &xD, &yD, bg);						  // determine the speed
+		determineButtonPressed(press, &xD, &yD, &status, &speed); // find which direction mario should go
 
 		gamestate->mario->xPos = xD;
 		gamestate->mario->yPos = yD;
@@ -595,15 +604,15 @@ void drawGameState(Pixel *pixel,
 		delayMicroseconds(speed); // delay to make it seem likes the cart moves slower
 		// didMarioCollideWithAnything(&xD, &yD, &bugCol);
 		repaint(press, xD, yD, block, bg);
-		testForCollisions(mario, &xD, &yD, pixel, gamestate);
+		testForCollisions(mario, &xD, &yD, pixel, gamestate, &status, &press);
 
-		if (i == 5)
+		if (press == 5)
 			drawImage(xD, yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_back);
-		else if (i == 6)
+		else if (press == 6)
 			drawImage(xD, yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_front);
-		else if (i == 7)
+		else if (press == 7)
 			drawImage(xD, yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_left);
-		else if (i == 8)
+		else if (press == 8)
 			drawImage(xD, yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_right);
 
 		// exit game if lives == 0
@@ -613,13 +622,13 @@ void drawGameState(Pixel *pixel,
 
 		// break;
 		// testForCollisions(mario, &xD, &yD, pixel, &bugCol, &currentLives, gamestate->bg);
-		checkGoal(1536, 704, &xD, &yD, &status);
 	}
 	if (status == 0)
 	{
 		pthread_cancel(bugThread);
 		pthread_cancel(timeT);
 	}
+
 	pthread_join(bugThread, NULL);
 	pthread_join(timeT, NULL);
 }
@@ -693,6 +702,54 @@ void screenMenu(int *game, int *stg)
 	}
 }
 
+void drawNewScene(GameState *gamestate, Alphabet *alp, int *stage)
+{
+	int xSize = X_DIM;
+	int ySize = Y_DIM;
+	Pixel *pixel = malloc(sizeof(Pixel));
+	int yOff, xOff;
+	for (int y = 0; y < ySize; y++)
+	{
+		yOff = y * gridSize;
+		for (int x = 0; x < xSize; x++)
+		{
+			xOff = x * gridSize;
+			int colour = getColour(gamestate->bg[y][x]);
+			drawBlock(gridSize, gridSize, xOff, yOff, colour, pixel);
+		}
+	}
+	drawHeader(alp);
+	drawLife(gamestate, pixel);
+	drawImage(384, 0, 64, 64, pixel, *(digits + *stage)); // draws the current stage
+
+	// draws the finish line
+	drawBlock(gamestate->goal->xSize,
+			  gamestate->goal->ySize,
+			  gamestate->goal->xPos,
+			  gamestate->goal->yPos,
+			  gamestate->goal->colour,
+			  pixel);
+	drawImage(gamestate->mario->xStart,
+			  gamestate->mario->yStart,
+			  gridSize,
+			  gridSize,
+			  pixel,
+			  gamestate->mario->imgptr_front);
+
+	int bugsInScene = numOfSprites->bugs;
+	int i;
+	for (i = 0; i < bugsInScene; i++)
+	{
+		drawImage(bugSpots->xStart,
+				  bugSpots->yStart,
+				  gridSize,
+				  gridSize,
+				  pixel,
+				  gamestate->bugs->imgptr_left);
+	}
+	free(pixel);
+}
+
 void determineStage()
 {
 	int maxObjects = 15;
@@ -703,7 +760,6 @@ void determineStage()
 	initScene1(gamestate, bugSpots, itemSpots, numOfSprites);
 	// Sprite *mario;
 	Alphabet *alp;
-	Numeric *num;
 
 	// short int *marioColour = (gamestate->mario->imgptr_front);
 	// printf("here");
@@ -715,14 +771,15 @@ void determineStage()
 	// exit(0);
 
 	alp = malloc(sizeof(Alphabet));
-	num = malloc(sizeof(Numeric));
+	digits = (short int **)malloc(sizeof(short int *) * 10); // 10 because of the number of digits
 
 	initAlphabet(alp);
-	initNumeric(num);
+	fillDigitArray(digits);
+	// initNumeric(num);
 
 	int stage = 0;
 	int gameOn = 1;
-	int i;
+	// int i;
 
 	/* initialize a pixel */
 	Pixel *pixel;
@@ -740,26 +797,7 @@ void determineStage()
 		}
 		else if (stage == 1)
 		{
-			drawNewScene(gamestate->bg);
-			drawHeader(alp);
-			drawImage(384, 0, 64, 64, pixel, num->numPtr_1);
-			drawBlock(5, 96, 1536, 704, 0xFF00, block); // draws the finish line
-			drawImage(gamestate->mario->xStart,
-					  gamestate->mario->yStart,
-					  gridSize,
-					  gridSize,
-					  pixel,
-					  gamestate->mario->imgptr_front);
-			int bugsInScene = numOfSprites->bugs;
-			for (i = 0; i < bugsInScene; i++)
-			{
-				drawImage(bugSpots->xStart,
-						  bugSpots->yStart,
-						  gridSize,
-						  gridSize,
-						  pixel,
-						  gamestate->bugs->imgptr_left);
-			}
+			drawNewScene(gamestate, alp, &stage);
 			drawGameState(pixel, gamestate, block, gamestate->bg);
 
 			stage++;
@@ -776,12 +814,15 @@ void determineStage()
 	free(pixel);
 	free(block);
 	free(alp);
-	free(num);
+	// free(num);
 	freeGameStateObjects(gamestate);
+
 	free(numOfSprites);
 	free(bugSpots);
 	free(itemSpots);
+
 	free(gamestate);
+	free(digits);
 }
 
 int main()

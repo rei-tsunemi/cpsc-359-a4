@@ -33,6 +33,11 @@ typedef struct
 
 typedef struct
 {
+    int xPos, yPos;
+} changingValues;
+
+typedef struct
+{
     short int *imgptr_front;
     short int *imgptr_back;
     short int *imgptr_right;
@@ -50,6 +55,7 @@ typedef struct
     short int *imgptr_right;
     short int *imgptr_left;
     int xPrev, yPrev;
+    int gotHit, canGetHit;
 } Mario;
 
 typedef struct
@@ -132,6 +138,7 @@ void initMario(Mario *mario);
 void initBug(BugSprite *bug);
 
 void initItemBlock(ItemBlock *itemblock);
+void initGoalPost(GoalPost *goal);
 
 void changeItemAtPos(int xS, int yS, ItemBlock *itemblocks);
 
@@ -155,4 +162,4 @@ void freeGameStateObjects(GameState *gamestate);
 
 void initNumeric(Numeric *num);
 void initAlphabet(Alphabet *alp);
-void fillDigitArray(short int ** digit);
+void fillDigitArray(short int **digit);
