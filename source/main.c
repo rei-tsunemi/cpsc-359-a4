@@ -961,7 +961,7 @@ void determineStage()
 	numOfSprites = malloc(sizeof(SpriteCount));
 
 	initScene1(gamestate, bugSpots, itemSpots, numOfSprites);
-	// gamestate->scene = 0;
+	gamestate->scene = 0;
 
 	initDigitsToDraw(digitsToDraw);
 
