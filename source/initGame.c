@@ -26,6 +26,8 @@ void initMario(Mario *mario)
     mario->drawSize = gridSize;
     mario->canGetHit = 1;
     mario->gotHit = 0;
+    mario->didHitPack = 0;
+    mario->packCollidedWith = -1; // set to -1 to say didnt collide with an item
 }
 
 void initBug(BugSprite *bug)
@@ -59,6 +61,7 @@ void changeItemAtPos(int i, int xS, int yS, ItemBlockPositions *itemblocks)
     (itemblocks + i)->xStart = xS;
     (itemblocks + i)->yStart = yS;
     (itemblocks + i)->drawFace = 0;
+    (itemblocks + i)->isVisible = 0;
 }
 
 void changeBugsAtPos(int i,
@@ -78,16 +81,11 @@ void changeBugsAtPos(int i,
     (bugspot + i)->moveDirection = moveD;
 }
 
-void initScene1(GameState *gamestate,
-                ItemBlockPositions *itemSpots,
-                SpriteCount *numOfSprites)
+void initScene1(GameState *gamestate)
 {
     int maxBugs = 15;
     int maxItemBlocks = 25;
     int i, j;
-    // number of sprites to be in this scene
-    numOfSprites->bugs = 3;
-    numOfSprites->items = 1;
 
     // 1). i -> position in the struct array
     // 2). xS -> x start pos
@@ -96,7 +94,7 @@ void initScene1(GameState *gamestate,
     // 5). maxPosS -> the maximum the bug can move
     // 6). moveD -> move direction
     // 7). moveV -> up / down (2), left / right (1)
-    changeItemAtPos(0, 704, 704, itemSpots);
+    // changeItemAtPos(0, 704, 704, itemSpots);
 
     // init important game state stuff
     gamestate->timeLeft = 300;
@@ -107,9 +105,6 @@ void initScene1(GameState *gamestate,
 
     gamestate->sceneStatus = 1;
     gamestate->scene = 1;
-
-    // gamestate->marioGotHit = 0;
-    // init mario
 
     // init sprite count for each scene
     gamestate->spritesForScene = malloc(sizeof(SpriteCount));

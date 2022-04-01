@@ -71,6 +71,7 @@ typedef struct
     short int *imgptr_left;
     int xPrev, yPrev;
     int gotHit, canGetHit;
+    int didHitPack, packCollidedWith;
 
 } Mario;
 
@@ -116,6 +117,7 @@ typedef struct
     int xStart;
     int yStart;
     int drawFace;
+    int isVisible;
 } ItemBlockPositions;
 
 typedef struct
@@ -177,12 +179,10 @@ void changeBugsAtPos(int i,
                      BugPositions *bugspot);
 
 // void initScene1(GameState *gamestate,
-//                 BugPositions *bugspots,
 //                 ItemBlockPositions *itemSpots,
 //                 SpriteCount *numOfSprites);
-void initScene1(GameState *gamestate,
-                ItemBlockPositions *itemSpots,
-                SpriteCount *numOfSprites);
+
+void initScene1(GameState *gamestate);
 
 void initScene2(GameState *gamestate);
 
