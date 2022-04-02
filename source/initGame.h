@@ -56,8 +56,15 @@ typedef struct
 
 typedef struct
 {
+    short int *imgPtr_dark;
+    short int *imgPtr_dead;
+    short int *imgPtr_light;
+} Tree;
 
-} EnemyImg;
+typedef struct {
+    int xStart;
+    int yStart;
+} TreePositions;
 
 typedef struct
 {
@@ -207,6 +214,10 @@ void initScene1(GameState *gamestate);
 
 void initScene2(GameState *gamestate);
 
+void initScene3(GameState *gamestate);
+
+void initScene4(GameState *gamestate);
+
 void freeGameStateObjects(GameState *gamestate);
 
 void initNumeric(Numeric *num);
@@ -220,3 +231,7 @@ void initDigitsToDraw(DigitsToDraw *dtd);
 void initSpriteImgs(SpriteImages *imgs);
 
 void initDigitsToDraw(DigitsToDraw *dtd);
+
+void initGameState(GameState *gamestate);
+
+void changeMarioPosScene(Mario *mario, int x, int y);
