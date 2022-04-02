@@ -52,8 +52,7 @@ static int globalButtons[16]; // to store the input value from the buttons / reg
 GameState *gamestate;		// global gamestate
 DigitsToDraw *digitsToDraw; // global struct pointer to draw digits at their correct positions
 
-CoinPositions *coinSpots;	   // global array of coins spots
-
+CoinPositions *coinSpots; // global array of coins spots
 
 // GPIO setup macros.
 #define INP_GPIO(g) *(gpioPtr + ((g) / 10)) &= ~(7 << (((g) % 10) * 3)) // set input
@@ -155,6 +154,7 @@ void Read_SNES()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 /* Draw a pixel */
+
 void drawPixel(Pixel *pixel)
 {
 	long int location = (pixel->x + framebufferstruct.xOff) * (framebufferstruct.bits / 8) +
@@ -180,6 +180,13 @@ int getColour(int num)
 		return 0xCEE2; // creamy yellow
 	else			   // num is 2
 		return 0x0000; // black
+}
+
+int getBackGroundColour(GameState *gs, int *x, int *y)
+{
+	int colour;
+	colour = gs->bg[*y / gridSize][*x / gridSize];
+	return getColour(colour);
 }
 
 void checkCollision(int *x, int *y, int *xToCheck, int *yToCheck, int *flag)
@@ -508,44 +515,51 @@ void drawValuePack(Pixel *pixel, GameState *gs)
 	Wait(200000);
 }
 
-
-void drawCoins(Pixel *pixel, Coin *cn, GameState *gs)
+void drawCoins(Pixel *pixel, GameState *gs)
 {
-	int numOfCoins = numOfSprites->coins;
-	int i, xD, yD;
+	Coin *cn = gs->coins;
+	int numOfCoins = gs->spritesForScene->coins;
+	int i, drawFace, xD, yD, visible;
+	int bgColour;
 	for (i = 0; i < numOfCoins; i++)
 	{
-		xD = (coinSpots + i)->xStart;
-		yD = (coinSpots + i)->yStart;
-		int j = (coinSpots + i)->drawFace;
-		// xD = 704;
-		// yD = 704;
-		if (j == 0)
+		visible = (gs->coinSpots + i)->isVisible;
+		if (visible)
 		{
-			drawSprite(xD, yD, cn->drawSize, cn->drawSize, pixel, cn->coinPtr_side, 1215);
-		}
-		else if (j == 1)
-		{
-			drawSprite(xD, yD, cn->drawSize, cn->drawSize, pixel, cn->coinPtr_left, 1215);
-		}
-		else if (j == 2)
-		{
-			drawSprite(xD, yD, cn->drawSize, cn->drawSize, pixel, cn->coinPtr_front, 1215);
-		}
-		else if (j == 3)
-		{
-			drawSprite(xD, yD, cn->drawSize, cn->drawSize, pixel, cn->coinPtr_right, 1215);
-		}
+			xD = (gs->coinSpots + i)->xStart;
+			yD = (gs->coinSpots + i)->yStart;
+			drawFace = (gs->coinSpots + i)->drawFace;
+			bgColour = getBackGroundColour(gs, &xD, &yD);
+			drawBlock(cn->drawSize, cn->drawSize, xD, yD, bgColour, pixel);
 
-		j++;
-		if (j == 4)
-			j = 0;
-		(coinSpots + i)->drawFace = j;
+			if (drawFace == 0)
+			{
+
+				drawSprite(xD, yD, cn->drawSize, cn->drawSize, pixel, cn->coinPtr_side, 1215);
+			}
+			else if (drawFace == 1)
+			{
+				drawSprite(xD, yD, cn->drawSize, cn->drawSize, pixel, cn->coinPtr_left, 1215);
+			}
+			else if (drawFace == 2)
+			{
+				drawSprite(xD, yD, cn->drawSize, cn->drawSize, pixel, cn->coinPtr_front, 1215);
+			}
+			else if (drawFace == 3)
+			{
+				drawSprite(xD, yD, cn->drawSize, cn->drawSize, pixel, cn->coinPtr_right, 1215);
+			}
+
+			drawFace++;
+			if (drawFace == 4)
+				drawFace = 0;
+			(gs->coinSpots + i)->drawFace = drawFace;
+		}
 	}
 	Wait(100000);
 }
 
-void *animateValuePack(void *param)(void *param)
+void *animateValuePack(void *param)
 {
 	GameState *gamestate = (GameState *)param;
 	Pixel *pix = malloc(sizeof(Pixel));
@@ -560,7 +574,7 @@ void *animateValuePack(void *param)(void *param)
 	while (gamestate->sceneStatus)
 	{
 		drawValuePack(pix, gamestate);
-		drawCoins(pix, gamestate->coins, gamestate);
+		drawCoins(pix, gamestate);
 	}
 	free(pix);
 
@@ -750,7 +764,7 @@ void drawPauseMenu(GameState *gamestate, int *x, int *y, Mario *m, int *status)
 			paused = 0;
 			*status = 1;
 			gamestate->sceneStatus = 2;
-			//drawNewScene(gamestate);
+			// drawNewScene(gamestate);
 			Wait(800000);
 		}
 		else if (i == 5)
@@ -773,7 +787,6 @@ void drawPauseMenu(GameState *gamestate, int *x, int *y, Mario *m, int *status)
 				gamestate->sceneStatus = 0;
 				gamestate->score = 0;
 				paused = 0;
-				
 			}
 			else if (quit == 1)
 			{
@@ -880,7 +893,7 @@ void testForCollisions(Mario *mario,
 			(*xD <= (gs->goal->xPos + gs->goal->xSize)) &&
 			(*yD >= gs->goal->yPos) &&
 			(*yD <= (gs->goal->yPos + gs->goal->ySize)))
-			
+
 		{
 			*status = 0;
 			gamestate->winCond = 1;
@@ -894,10 +907,10 @@ void drawGameState(Pixel *pixel,
 				   int bg[Y_DIM][X_DIM])
 {
 	Mario *mario = gamestate->mario;
-	int status = 1;			// game status
-	int numOfButtons = 16;	// number of buttons on snes
-	int xD = mario->xPos; // move in x direction
-	int yD = mario->yPos; // move in y direction
+	int status = 1;		   // game status
+	int numOfButtons = 16; // number of buttons on snes
+	int xD = mario->xPos;  // move in x direction
+	int yD = mario->yPos;  // move in y direction
 
 	pthread_attr_t attr;
 	pthread_attr_init(&attr);
@@ -969,8 +982,8 @@ void drawGameState(Pixel *pixel,
 			Wait(800000);
 			drawPauseMenu(gamestate, &xD, &yD, mario, &status);
 			// gamestate->sceneStatus = 2;
-			
-			//break;
+
+			// break;
 		}
 		else if (press == 5)
 			drawSprite(xD, yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_back, -31505);
@@ -1025,12 +1038,14 @@ void screenMenu(int *game)
 				}
 			}
 		}
-		if (i == 4){
+		if (i == 4)
+		{
 			gamestate->scene = 1;
 			gamestate->sceneStatus = 1;
 			status = 0;
 			Wait(500000);
-		} else if (i == 5)
+		}
+		else if (i == 5)
 		{
 			drawImage(0, 0, 1024, 1920, pix, startPtr);
 			start = 1;
@@ -1092,11 +1107,11 @@ void drawNewScene(GameState *gamestate)
 			  gamestate->goal->colour,
 			  pixel);
 	drawSprite(gamestate->mario->xPos,
-			  gamestate->mario->yPos,
-			  gridSize,
-			  gridSize,
-			  pixel,
-			  gamestate->mario->imgptr_front, -31505);
+			   gamestate->mario->yPos,
+			   gridSize,
+			   gridSize,
+			   pixel,
+			   gamestate->mario->imgptr_front, -31505);
 
 	free(pixel);
 	free(alp);
@@ -1107,10 +1122,9 @@ void determineStage()
 	gamestate = malloc(sizeof(GameState));
 	digitsToDraw = malloc(sizeof(DigitsToDraw));
 
-	coinSpots = malloc(sizeof(CoinPositions) * maxObjects);
-	
+	// coinSpots = malloc(sizeof(CoinPositions) * maxObjects);
 
-	initScene1(gamestate, bugSpots, itemSpots, coinSpots, numOfSprites);
+	// initScene1(gamestate, bugSpots, itemSpots, coinSpots, numOfSprites);
 	gamestate->scene = 0;
 
 	initDigitsToDraw(digitsToDraw);
@@ -1122,12 +1136,7 @@ void determineStage()
 	// }
 	// exit(0);
 
-	// Alphabet *alp = malloc(sizeof(Alphabet));
-
-	// initAlphabet(alp);
-
 	int gameOn = 1;
-	// int i;
 
 	/* initialize a pixel */
 	Pixel *pixel;
@@ -1143,24 +1152,35 @@ void determineStage()
 		{
 			screenMenu(&gameOn);
 
-			initScene1(gamestate, bugSpots, itemSpots, coinSpots, numOfSprites);
+			// initScene1(gamestate, bugSpots, itemSpots, coinSpots, numOfSprites);
+			initScene1(gamestate);
 		}
 		else if (gamestate->scene == 1)
 		{
-			if(gamestate->sceneStatus == 0){
-				initScene1(gamestate, bugSpots, itemSpots, coinSpots, numOfSprites);
-			} else if(gamestate->sceneStatus == 1){
+			if (gamestate->sceneStatus == 0)
+			{
+				// initScene1(gamestate, bugSpots, itemSpots, coinSpots, numOfSprites);
+				initScene1(gamestate);
+			}
+			else if (gamestate->sceneStatus == 1)
+			{
 				drawNewScene(gamestate);
 				drawGameState(pixel, gamestate, block, gamestate->bg);
-			} else {
+			}
+			else
+			{
 				gamestate->sceneStatus = 1;
 				drawNewScene(gamestate);
 				drawGameState(pixel, gamestate, block, gamestate->bg);
 			}
-			if(gamestate->winCond == 1){
+			if (gamestate->winCond == 1)
+			{
 				calcScenceEndScore(gamestate, pixel);
 				gamestate->scene++;
-			} else{}
+			}
+			else
+			{
+			}
 			// stage++;
 		}
 		else
@@ -1173,8 +1193,6 @@ void determineStage()
 	/* free pixel's allocated memory */
 	free(pixel);
 	free(block);
-
-	free(alp);
 
 	freeGameStateObjects(gamestate);
 	freeDigitsToDrawObjects(digitsToDraw);

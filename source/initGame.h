@@ -78,7 +78,15 @@ typedef struct
 typedef struct
 {
     int drawSize;
-    int itemsDropped; // number of items that are dropped
+    int moveSpeed;
+    short int *imgptr_right;
+    short int *imgptr_left;
+
+} BugSprite;
+
+typedef struct
+{
+    int drawSize;
     short int *valPtr_F;
     short int *valPtr_s1;
     short int *valPtr_s2;
@@ -87,11 +95,11 @@ typedef struct
 typedef struct
 {
     int drawSize;
-    int moveSpeed;
-    short int *imgptr_right;
-    short int *imgptr_left;
-
-} BugSprite;
+    short int *coinPtr_side;
+    short int *coinPtr_left;
+    short int *coinPtr_front;
+    short int *coinPtr_right;
+} Coin;
 
 typedef struct
 {
@@ -115,35 +123,18 @@ typedef struct
 typedef struct
 {
 
-    int drawSize;
-    int itemsDropped; // number of items that are dropped
-    short int *valPtr_F;
-    short int *valPtr_s1;
-    short int *valPtr_s2;
-} ItemBlock;
-
-typedef struct{
-    int drawSize;
-    int itemsDropped; // number of items that are dropped
-    short int *coinPtr_side;
-    short int *coinPtr_left;
-    short int *coinPtr_front;
-    short int *coinPtr_right;
-} Coin;
-
-typedef struct
-{
-
     int xStart;
     int yStart;
     int drawFace;
     int isVisible;
 } ItemBlockPositions;
 
-typedef struct{
+typedef struct
+{
     int xStart;
     int yStart;
     int drawFace;
+    int isVisible;
 } CoinPositions;
 
 typedef struct
@@ -174,6 +165,7 @@ typedef struct
     BugPositions *bugSpots;        // bug positions
     ItemBlockPositions *itemSpots; // item positons
     ItemBlock *itemblocks;
+    CoinPositions *coinSpots;
     Coin *coins;
     GoalPost *goal;
     SpriteCount *spritesForScene;
@@ -198,7 +190,7 @@ void initCoin(Coin *coin);
 
 void initGoalPost(GoalPost *goal);
 
-void changeCoinAtPos(int i ,int xS, int yS, CoinPositions *coinposition);
+void changeCoinAtPos(int i, int xS, int yS, CoinPositions *coinposition);
 
 void changeItemAtPos(int i, int xS, int yS, ItemBlockPositions *itemblocks);
 
@@ -212,7 +204,6 @@ void changeBugsAtPos(int i,
                      BugPositions *bugspot);
 
 void initScene1(GameState *gamestate);
-
 
 void initScene2(GameState *gamestate);
 
@@ -229,4 +220,3 @@ void initDigitsToDraw(DigitsToDraw *dtd);
 void initSpriteImgs(SpriteImages *imgs);
 
 void initDigitsToDraw(DigitsToDraw *dtd);
-
