@@ -28,6 +28,7 @@ void initMario(Mario *mario)
     // for handling coins
     mario->didGetCoin = 0;
     mario->coinGotten = -1;
+
 }
 
 void changeMarioPosScene(Mario *mario, int x, int y)
@@ -157,6 +158,8 @@ void initGameState(GameState *gamestate)
     gamestate->coinSpots = malloc(sizeof(CoinPositions) * maxCoins);
 }
 
+
+
 void initScene1(GameState *gamestate)
 
 {
@@ -226,15 +229,48 @@ void initScene2(GameState *gamestate)
 {
     // copy background 2 into the gamestate
     gamestate->timeLeft = 200;
+    gamestate->sceneStatus = 1;
+    gamestate->scene = 1;
+    changeMarioPosScene(gamestate->mario, 32, 736);
     int i, j;
     for (i = 0; i < Y_DIM; i++)
     {
         for (j = 0; j < X_DIM; j++)
         {
-            (*gamestate).bg[i][j] = bg1[i][j];
+            (*gamestate).bg[i][j] = bg2[i][j];
         }
     }
 }
+
+
+void initScene3(GameState *gamestate)
+{
+    // copy background 2 into the gamestate
+    gamestate->timeLeft = 200;
+    int i, j;
+    for (i = 0; i < Y_DIM; i++)
+    {
+        for (j = 0; j < X_DIM; j++)
+        {
+            (*gamestate).bg[i][j] = bg3[i][j];
+        }
+    }
+}
+
+void initScene4(GameState *gamestate)
+{
+    // copy background 2 into the gamestate
+    gamestate->timeLeft = 200;
+    int i, j;
+    for (i = 0; i < Y_DIM; i++)
+    {
+        for (j = 0; j < X_DIM; j++)
+        {
+            (*gamestate).bg[i][j] = bg4[i][j];
+        }
+    }
+}
+
 
 void initAlphabet(Alphabet *alp)
 {

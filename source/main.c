@@ -741,6 +741,7 @@ void didMarioCollideWithAnything(int *xD, int *yD, GameState *gs)
 		{
 			gs->mario->coinGotten = j;
 			return;
+
 		}
 	}
 }
@@ -807,7 +808,10 @@ void testForCollisions(Mario *mario,
 		gs->mario->xPrev = *xD;
 		gs->mario->yPrev = *yD;
 
-		drawSprite(*xD, *yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_front, -31505);
+		if(gs->scene == 1)
+			drawSprite(*xD, *yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_front, -31505);
+		else if(gs->scene == 2)
+			drawSprite(*xD, *yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_right, -31505);
 
 		gs->mario->moveSpeed = baseSpeed;
 		gs->mario->speedBonus = 0;
@@ -869,8 +873,10 @@ void testForCollisions(Mario *mario,
 
 		{
 			*status = 0;
-			gamestate->winCond = 1;
-			gamestate->scene++;
+			gamestate->winCond++;
+			gamestate->sceneStatus = 0;
+			Wait(100000);
+			// gamestate->scene++;
 		}
 	}
 }
@@ -1168,6 +1174,45 @@ void drawNewScene(GameState *gamestate)
 	free(alp);
 }
 
+void stageNavigation(GameState *gamestate, Pixel *pixel, Pixel *block){
+	if (gamestate->sceneStatus == 0) // restart
+	{
+		if(gamestate->scene == 1)
+			initScene1(gamestate);
+		else if(gamestate->scene == 2)
+			initScene2(gamestate);
+		else if(gamestate->scene == 3)
+			initScene3(gamestate);
+		else if(gamestate->scene == 4)
+			initScene4(gamestate);
+
+		drawNewScene(gamestate);
+		drawGameState(pixel, gamestate, block, gamestate->bg);
+	} else // unpause
+	{
+		gamestate->sceneStatus = 1;
+		drawNewScene(gamestate);
+		drawGameState(pixel, gamestate, block, gamestate->bg);
+	}
+}
+
+void winloseCondCheck(GameState *gamestate, Pixel *pixel){
+	if (gamestate->winCond == 1)
+	{
+		calcScenceEndScore(gamestate, pixel);
+		gamestate->scene++;
+	} else if(gamestate->winCond == 2){
+		calcScenceEndScore(gamestate, pixel);
+		gamestate->scene++;
+	} else if(gamestate->winCond == 3){
+		calcScenceEndScore(gamestate, pixel);
+		gamestate->scene++;
+	} else if(gamestate->winCond == 4){
+		calcScenceEndScore(gamestate, pixel);
+		gamestate->scene++;
+	}
+}
+
 void determineStage()
 {
 	gamestate = malloc(sizeof(GameState));
@@ -1204,40 +1249,24 @@ void determineStage()
 		}
 		else if (gamestate->scene == 1)
 		{
-			if (gamestate->sceneStatus == 0) // restart
-			{
+			stageNavigation(gamestate, pixel, block);
+			winloseCondCheck(gamestate, pixel);
 
-				initScene1(gamestate);
-				drawNewScene(gamestate);
-				drawGameState(pixel, gamestate, block, gamestate->bg);
-			}
-			// else if (gamestate->sceneStatus == 1) // quit
-			// {
-			// 	printf("2");
-			// 	drawNewScene(gamestate);
-			// 	drawGameState(pixel, gamestate, block, gamestate->bg);
-			// }
-			else // unpause
-			{
-				gamestate->sceneStatus = 1;
-				drawNewScene(gamestate);
-				drawGameState(pixel, gamestate, block, gamestate->bg);
-			}
-
-			if (gamestate->winCond == 1)
-			{
-				calcScenceEndScore(gamestate, pixel);
-				gamestate->scene++;
-			}
-			else
-			{
-			}
-			// stage++;
 		}
-		else
+		else if (gamestate->scene == 2)
 		{
-			initScene2(gamestate);
-			gameOn = 0;
+			stageNavigation(gamestate, pixel, block);
+			winloseCondCheck(gamestate, pixel);
+		}
+		else if (gamestate->scene == 3)
+		{
+			stageNavigation(gamestate, pixel, block);
+			winloseCondCheck(gamestate, pixel);
+		}
+		else if (gamestate->scene == 4)
+		{
+			stageNavigation(gamestate, pixel, block);
+			winloseCondCheck(gamestate, pixel);
 		}
 	}
 

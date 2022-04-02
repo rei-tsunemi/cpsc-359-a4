@@ -56,8 +56,15 @@ typedef struct
 
 typedef struct
 {
+    short int *imgPtr_dark;
+    short int *imgPtr_dead;
+    short int *imgPtr_light;
+} Tree;
 
-} EnemyImg;
+typedef struct {
+    int xStart;
+    int yStart;
+} TreePositions;
 
 typedef struct
 {
@@ -207,6 +214,10 @@ void changeBugsAtPos(int i,
 void initScene1(GameState *gamestate);
 
 void initScene2(GameState *gamestate);
+
+void initScene3(GameState *gamestate);
+
+void initScene4(GameState *gamestate);
 
 void freeGameStateObjects(GameState *gamestate);
 
