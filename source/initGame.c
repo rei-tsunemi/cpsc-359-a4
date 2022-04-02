@@ -80,6 +80,7 @@ void initTrees(Tree *t)
     t->imgPtr_dark = (short int *)treeImg.darktree_data;
     t->imgPtr_dead = (short int *)treeImg.deadtree_data;
     t->imgPtr_light = (short int *)treeImg.greentree_data;
+    t->drawSize = gridSize;
 }
 
 void changeTreePos(int i, int x, int y, TreePositions *trees)
@@ -142,7 +143,7 @@ void initGameState(GameState *gamestate)
     int maxBugs = 15;
     int maxItemBlocks = 25;
     int maxCoins = 30;
-    int maxTrees = 50;
+    int maxTrees = 150;
 
     gamestate->loseCond = 0;
     gamestate->winCond = 0;
@@ -204,7 +205,7 @@ void initScene1(GameState *gamestate)
     gamestate->spritesForScene->bugs = 3;
     gamestate->spritesForScene->items = 6;
     gamestate->spritesForScene->coins = 6;
-    gamestate->spritesForScene->trees = 40;
+    // gamestate->spritesForScene->trees = 40;
 
     changeMarioPosScene(gamestate->mario, 192, 128);
 
@@ -233,13 +234,72 @@ void initScene1(GameState *gamestate)
     changeItemAtPos(4, xPos, yPos + gridSize, gamestate->itemSpots);
     changeItemAtPos(5, xPos, yPos + (11 * gridSize), gamestate->itemSpots);
 
-    int numOfTrees = gamestate->spritesForScene->trees;
-    int stop = 14;
+    int numOfTreesUsed = 0;
+    // 15 trees
+    int stop = 15;
+    numOfTreesUsed += stop;
     int currentTree = 0;
     xPos = 480;
     yPos = 64;
     for (i = 0; i < stop; i++)
-        changeTreePos(currentTree, xPos, yPos * (i + 1), gamestate->treeSpots);
+    {
+        changeTreePos(currentTree, xPos, yPos + (gridSize * i), gamestate->treeSpots);
+        currentTree++;
+    }
+
+    // 10 trees
+    yPos = 320;
+    xPos = 896;
+    stop = 10;
+    numOfTreesUsed += stop;
+    for (i = 0; i < stop; i++)
+    {
+        changeTreePos(currentTree, xPos + (gridSize * i), yPos, gamestate->treeSpots);
+        currentTree++;
+    }
+
+    // 22 trees
+    yPos += gridSize;
+    stop = 22;
+    numOfTreesUsed += stop;
+    for (i = 0; i < stop; i++)
+    {
+        changeTreePos(currentTree, xPos, yPos + (gridSize * i), gamestate->treeSpots);
+        currentTree++;
+    }
+
+    // 15 trees
+    yPos = 320;
+    xPos = 1248;
+    stop = 15;
+    numOfTreesUsed += stop;
+    for (i = 0; i < stop; i++)
+    {
+        changeTreePos(currentTree, xPos + (gridSize * i), yPos, gamestate->treeSpots);
+        currentTree++;
+    }
+
+    // 21
+    yPos = 672;
+    xPos = 1248;
+    stop = 21;
+    numOfTreesUsed += stop;
+    for (i = 0; i < stop; i++)
+    {
+        changeTreePos(currentTree, xPos + (gridSize * i), yPos, gamestate->treeSpots);
+        currentTree++;
+    }
+    yPos = 800;
+    xPos = 1248;
+    stop = 21;
+    numOfTreesUsed += stop;
+    for (i = 0; i < stop; i++)
+    {
+        changeTreePos(currentTree, xPos + (gridSize * i), yPos, gamestate->treeSpots);
+        currentTree++;
+    }
+
+    gamestate->spritesForScene->trees = numOfTreesUsed;
 
     // copy background 1 into the gamestate
     for (i = 0; i < Y_DIM; i++)

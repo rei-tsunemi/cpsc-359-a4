@@ -214,8 +214,14 @@ void getCartSpeed(int *speed, int *x, int *y, int bg[Y_DIM][X_DIM], int *speedBo
 	}
 }
 
-void determineButtonPressed(int i, int *x, int *y, int *status)
+void determineButtonPressed(int i, int *x, int *y, GameState *gs)
 {
+	int j;
+	int treeCollision = 0;
+	int numOfTrees = gs->spritesForScene->trees;
+	int xPrev = *x;
+	int yPrev = *y;
+
 	// int mov = 32;
 	if (i == 5)
 	{
@@ -244,6 +250,19 @@ void determineButtonPressed(int i, int *x, int *y, int *status)
 			(*x) = (*x);
 		else
 			(*x) += gridSize;
+	}
+	for (j = 0; j < numOfTrees; j++)
+	{
+		checkCollision(x, y,
+					   &((gs->treeSpots + j)->xStart),
+					   &((gs->treeSpots + j)->yStart),
+					   &treeCollision);
+		if (treeCollision)
+		{
+			*x = xPrev;
+			*y = yPrev;
+			return;
+		}
 	}
 }
 
@@ -657,10 +676,8 @@ void drawScoreDisplay(GameState *gamestate, Pixel *pixel)
 			drawImage(xPos, yPos, size, size, pixel, *(digitsToDraw->digits + i));
 		if (hundred == i)
 			drawImage(xPos + size, yPos, size, size, pixel, *(digitsToDraw->digits + i));
-
 		if (ten == i)
 			drawImage(xPos + (2 * size), yPos, size, size, pixel, *(digitsToDraw->digits + i));
-
 		if (one == i)
 			drawImage(xPos + (3 * size), yPos, size, size, pixel, *(digitsToDraw->digits + i));
 	}
@@ -940,7 +957,7 @@ void drawGameState(Pixel *pixel,
 		// determineButtonPressed(press, &xD, &yD, &status, &speed); // find which direction mario should go
 
 		getCartSpeed(&(mario->moveSpeed), &xD, &yD, gamestate->bg, &(mario->speedBonus));
-		determineButtonPressed(press, &xD, &yD, &status);
+		determineButtonPressed(press, &xD, &yD, gamestate);
 		// gamestate->mario->xPos = xD;
 		// gamestate->mario->yPos = yD;
 		mario->xPos = xD;
@@ -1138,12 +1155,13 @@ void drawNewScene(GameState *gamestate)
 	initAlphabet(alp);
 	int xSize = X_DIM;
 	int ySize = Y_DIM;
+	int x;
 
 	int yOff, xOff;
 	for (int y = 0; y < ySize; y++)
 	{
 		yOff = y * gridSize;
-		for (int x = 0; x < xSize; x++)
+		for (x = 0; x < xSize; x++)
 		{
 			xOff = x * gridSize;
 			int colour = getColour(gamestate->bg[y][x]);
@@ -1170,6 +1188,18 @@ void drawNewScene(GameState *gamestate)
 			   gridSize,
 			   pixel,
 			   gamestate->mario->imgptr_front, -31505);
+
+	int numOfTrees = gamestate->spritesForScene->trees;
+	for (x = 0; x < numOfTrees; x++)
+	{
+		drawSprite((gamestate->treeSpots + x)->xStart,
+				   (gamestate->treeSpots + x)->yStart,
+				   gamestate->trees->drawSize,
+				   gamestate->trees->drawSize,
+				   pixel,
+				   gamestate->trees->imgPtr_light,
+				   2016);
+	}
 
 	free(pixel);
 	free(alp);

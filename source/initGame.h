@@ -59,6 +59,7 @@ typedef struct
     short int *imgPtr_dark;
     short int *imgPtr_dead;
     short int *imgPtr_light;
+    int drawSize;
 } Tree;
 
 typedef struct
@@ -161,7 +162,7 @@ typedef struct
     int bugs;
     int items;
     int coins;
-    int trees; 
+    int trees;
 } SpriteCount;
 
 static int Y_DIM = 33; // 33
