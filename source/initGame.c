@@ -165,7 +165,7 @@ void initScene1(GameState *gamestate)
     // changeItemAtPos(0, 704, 704, itemSpots);
 
     // init important game state stuff
-    gamestate->timeLeft = 300;
+    gamestate->timeLeft = 60;
     gamestate->lives = 5;
     gamestate->score = 0;
 
@@ -183,7 +183,7 @@ void initScene1(GameState *gamestate)
 
     // init the goal post
 
-    changeBugsAtPos(0, 320, 320, 0, 12, -1, 1, gamestate->bugSpots);
+    changeBugsAtPos(0, 320, 320, 0, 10, -1, 1, gamestate->bugSpots);
     changeBugsAtPos(1, 480, 544, 0, 10, 1, 2, gamestate->bugSpots);
     changeBugsAtPos(2, 1088, 160, 0, 25, 1, 2, gamestate->bugSpots);
 
