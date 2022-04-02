@@ -220,3 +220,7 @@ void initDigitsToDraw(DigitsToDraw *dtd);
 void initSpriteImgs(SpriteImages *imgs);
 
 void initDigitsToDraw(DigitsToDraw *dtd);
+
+void initGameState(GameState *gamestate);
+
+void changeMarioPosScene(Mario *mario, int x, int y);
