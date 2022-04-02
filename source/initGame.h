@@ -114,11 +114,37 @@ typedef struct
 
 typedef struct
 {
+
+    int drawSize;
+    int itemsDropped; // number of items that are dropped
+    short int *valPtr_F;
+    short int *valPtr_s1;
+    short int *valPtr_s2;
+} ItemBlock;
+
+typedef struct{
+    int drawSize;
+    int itemsDropped; // number of items that are dropped
+    short int *coinPtr_side;
+    short int *coinPtr_left;
+    short int *coinPtr_front;
+    short int *coinPtr_right;
+} Coin;
+
+typedef struct
+{
+
     int xStart;
     int yStart;
     int drawFace;
     int isVisible;
 } ItemBlockPositions;
+
+typedef struct{
+    int xStart;
+    int yStart;
+    int drawFace;
+} CoinPositions;
 
 typedef struct
 {
@@ -134,6 +160,7 @@ typedef struct
 {
     int bugs;
     int items;
+    int coins;
 } SpriteCount;
 
 static int Y_DIM = 33; // 33
@@ -147,6 +174,7 @@ typedef struct
     BugPositions *bugSpots;        // bug positions
     ItemBlockPositions *itemSpots; // item positons
     ItemBlock *itemblocks;
+    Coin *coins;
     GoalPost *goal;
     SpriteCount *spritesForScene;
     int winCond, loseCond;
@@ -165,7 +193,12 @@ void initMario(Mario *mario);
 void initBug(BugSprite *bug);
 
 void initItemBlock(ItemBlock *itemblock);
+
+void initCoin(Coin *coin);
+
 void initGoalPost(GoalPost *goal);
+
+void changeCoinAtPos(int i ,int xS, int yS, CoinPositions *coinposition);
 
 void changeItemAtPos(int i, int xS, int yS, ItemBlockPositions *itemblocks);
 
@@ -178,11 +211,8 @@ void changeBugsAtPos(int i,
                      int moveV,
                      BugPositions *bugspot);
 
-// void initScene1(GameState *gamestate,
-//                 ItemBlockPositions *itemSpots,
-//                 SpriteCount *numOfSprites);
-
 void initScene1(GameState *gamestate);
+
 
 void initScene2(GameState *gamestate);
 
@@ -193,6 +223,10 @@ void initAlphabet(Alphabet *alp);
 
 void fillDigitArray(short int **digit);
 void freeDigitsToDrawObjects(DigitsToDraw *dtd);
+
 void initDigitsToDraw(DigitsToDraw *dtd);
 
 void initSpriteImgs(SpriteImages *imgs);
+
+void initDigitsToDraw(DigitsToDraw *dtd);
+
