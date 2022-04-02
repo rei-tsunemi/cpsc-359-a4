@@ -61,7 +61,8 @@ typedef struct
     short int *imgPtr_light;
 } Tree;
 
-typedef struct {
+typedef struct
+{
     int xStart;
     int yStart;
 } TreePositions;
@@ -160,6 +161,7 @@ typedef struct
     int bugs;
     int items;
     int coins;
+    int trees; 
 } SpriteCount;
 
 static int Y_DIM = 33; // 33
@@ -175,6 +177,8 @@ typedef struct
     ItemBlock *itemblocks;
     CoinPositions *coinSpots;
     Coin *coins;
+    Tree *trees;
+    TreePositions *treeSpots;
     GoalPost *goal;
     SpriteCount *spritesForScene;
     int winCond, loseCond;
@@ -236,3 +240,6 @@ void initDigitsToDraw(DigitsToDraw *dtd);
 void initGameState(GameState *gamestate);
 
 void changeMarioPosScene(Mario *mario, int x, int y);
+
+void initTrees(Tree *tree);
+void changeTreePos(int i, int x, int y, TreePositions *trees);

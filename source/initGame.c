@@ -28,7 +28,6 @@ void initMario(Mario *mario)
     // for handling coins
     mario->didGetCoin = 0;
     mario->coinGotten = -1;
-
 }
 
 void changeMarioPosScene(Mario *mario, int x, int y)
@@ -76,6 +75,19 @@ void initGoalPost(GoalPost *goal)
     goal->colour = 0xFF00;
 }
 
+void initTrees(Tree *t)
+{
+    t->imgPtr_dark = (short int *)treeImg.darktree_data;
+    t->imgPtr_dead = (short int *)treeImg.deadtree_data;
+    t->imgPtr_light = (short int *)treeImg.greentree_data;
+}
+
+void changeTreePos(int i, int x, int y, TreePositions *trees)
+{
+    (trees + i)->xStart = x;
+    (trees + i)->yStart = y;
+}
+
 void changeCoinAtPos(int i, int xS, int yS, CoinPositions *coinposition)
 {
     (coinposition + i)->xStart = xS;
@@ -117,9 +129,11 @@ void freeGameStateObjects(GameState *gamestate)
     free(gamestate->itemblocks);
     free(gamestate->coins);
     free(gamestate->goal);
+    free(gamestate->trees);
     free(gamestate->bugSpots);
     free(gamestate->itemSpots);
     free(gamestate->coinSpots);
+    free(gamestate->treeSpots);
     free(gamestate->spritesForScene);
 }
 
@@ -128,6 +142,7 @@ void initGameState(GameState *gamestate)
     int maxBugs = 15;
     int maxItemBlocks = 25;
     int maxCoins = 30;
+    int maxTrees = 50;
 
     gamestate->loseCond = 0;
     gamestate->winCond = 0;
@@ -153,12 +168,14 @@ void initGameState(GameState *gamestate)
     gamestate->goal = malloc(sizeof(GoalPost));
     initGoalPost(gamestate->goal);
 
+    gamestate->trees = malloc(sizeof(Tree));
+    initTrees(gamestate->trees);
+
     gamestate->bugSpots = malloc(sizeof(BugPositions) * maxBugs);
     gamestate->itemSpots = malloc(sizeof(ItemBlockPositions) * maxItemBlocks);
     gamestate->coinSpots = malloc(sizeof(CoinPositions) * maxCoins);
+    gamestate->treeSpots = malloc(sizeof(TreePositions) * maxTrees);
 }
-
-
 
 void initScene1(GameState *gamestate)
 
@@ -187,6 +204,7 @@ void initScene1(GameState *gamestate)
     gamestate->spritesForScene->bugs = 3;
     gamestate->spritesForScene->items = 6;
     gamestate->spritesForScene->coins = 6;
+    gamestate->spritesForScene->trees = 40;
 
     changeMarioPosScene(gamestate->mario, 192, 128);
 
@@ -215,6 +233,14 @@ void initScene1(GameState *gamestate)
     changeItemAtPos(4, xPos, yPos + gridSize, gamestate->itemSpots);
     changeItemAtPos(5, xPos, yPos + (11 * gridSize), gamestate->itemSpots);
 
+    int numOfTrees = gamestate->spritesForScene->trees;
+    int stop = 14;
+    int currentTree = 0;
+    xPos = 480;
+    yPos = 64;
+    for (i = 0; i < stop; i++)
+        changeTreePos(currentTree, xPos, yPos * (i + 1), gamestate->treeSpots);
+
     // copy background 1 into the gamestate
     for (i = 0; i < Y_DIM; i++)
     {
@@ -241,7 +267,6 @@ void initScene2(GameState *gamestate)
         }
     }
 }
-
 
 void initScene3(GameState *gamestate)
 {
@@ -270,7 +295,6 @@ void initScene4(GameState *gamestate)
         }
     }
 }
-
 
 void initAlphabet(Alphabet *alp)
 {
