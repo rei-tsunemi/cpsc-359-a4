@@ -16,10 +16,18 @@ void initMario(Mario *mario)
     mario->imgptr_front = (short int *)marioImgs.front_data;
     mario->imgptr_back = (short int *)marioImgs.back_data;
     mario->drawSize = gridSize;
+
+    // for handling getting hit by bugs
     mario->canGetHit = 1;
     mario->gotHit = 0;
+
+    // for handling value packs
     mario->didHitPack = 0;
     mario->packCollidedWith = -1; // set to -1 to say didnt collide with an item
+
+    // for handling coins
+    mario->didGetCoin = 0;
+    mario->coinGotten = -1;
 }
 
 void changeMarioPosScene(Mario *mario, int x, int y)
@@ -174,20 +182,35 @@ void initScene1(GameState *gamestate)
 
     // init sprite count for each scene
     gamestate->spritesForScene->bugs = 3;
-    gamestate->spritesForScene->items = 1;
-    gamestate->spritesForScene->coins = 1;
+    gamestate->spritesForScene->items = 6;
+    gamestate->spritesForScene->coins = 6;
 
     changeMarioPosScene(gamestate->mario, 192, 128);
 
-    changeCoinAtPos(0, 192, 704, gamestate->coinSpots);
-
-    // init the goal post
-
+    int yPos = 576;
+    int xPos = 160;
     changeBugsAtPos(0, 320, 320, 0, 10, -1, 1, gamestate->bugSpots);
     changeBugsAtPos(1, 480, 544, 0, 10, 1, 2, gamestate->bugSpots);
-    changeBugsAtPos(2, 1088, 160, 0, 25, 1, 2, gamestate->bugSpots);
+    changeBugsAtPos(2, 1216, 160, 0, 25, 1, 2, gamestate->bugSpots);
 
-    changeItemAtPos(0, 704, 704, gamestate->itemSpots);
+    changeCoinAtPos(0, xPos, yPos, gamestate->coinSpots);
+    changeCoinAtPos(1, xPos + gridSize, yPos, gamestate->coinSpots);
+    changeCoinAtPos(2, xPos + (2 * gridSize), yPos, gamestate->coinSpots);
+    xPos = 704;
+    changeCoinAtPos(3, xPos, yPos, gamestate->coinSpots);
+    changeCoinAtPos(4, xPos + gridSize, yPos, gamestate->coinSpots);
+    changeCoinAtPos(5, xPos + (2 * gridSize), yPos, gamestate->coinSpots);
+
+    xPos = 512;
+    yPos = 704;
+    changeItemAtPos(0, xPos, yPos, gamestate->itemSpots);
+    changeItemAtPos(1, xPos, yPos + gridSize, gamestate->itemSpots);
+    changeItemAtPos(2, xPos, yPos + (2 * gridSize), gamestate->itemSpots);
+    xPos = 1408;
+    yPos = 128;
+    changeItemAtPos(3, xPos, yPos, gamestate->itemSpots);
+    changeItemAtPos(4, xPos, yPos + gridSize, gamestate->itemSpots);
+    changeItemAtPos(5, xPos, yPos + (11 * gridSize), gamestate->itemSpots);
 
     // copy background 1 into the gamestate
     for (i = 0; i < Y_DIM; i++)

@@ -727,6 +727,22 @@ void didMarioCollideWithAnything(int *xD, int *yD, GameState *gs)
 			return;
 		}
 	}
+	int numOfCoins = gs->spritesForScene->coins;
+	for (j = 0; j < numOfCoins; j++)
+	{
+		visible = (gs->coinSpots + j)->isVisible;
+		if (visible)
+		{
+			bX = (gs->coinSpots + j)->xStart;
+			bY = (gs->coinSpots + j)->yStart;
+			checkCollision(xD, yD, &bX, &bY, &(gs->mario->didGetCoin));
+		}
+		if (gs->mario->didGetCoin)
+		{
+			gs->mario->coinGotten = j;
+			return;
+		}
+	}
 }
 
 void determineValuePackEffect(Mario *mario, GameState *gs)
@@ -816,6 +832,33 @@ void testForCollisions(Mario *mario,
 		(gs->itemSpots + packPos)->isVisible = 0;
 		mario->didHitPack = 0;
 		mario->packCollidedWith = -1;
+	}
+	else if (mario->didGetCoin)
+	{
+		int coinGot = mario->coinGotten;
+		int colour = getColour(gs->bg[*yD / gridSize][*xD / gridSize]);
+		int drawSize = gs->coins->drawSize;
+
+		drawBlock(drawSize, drawSize, *xD, *yD, colour, pixel);
+		drawSprite(*xD, *yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_front, -31505);
+
+		if (gs->scene == 1)
+			gs->score += 5;
+
+		else if (gs->scene == 2)
+			gs->score += 10;
+
+		else if (gs->scene == 3)
+			gs->score += 15;
+
+		else if (gs->scene == 4)
+			gs->score += 20;
+
+		drawScoreDisplay(gamestate, pixel);
+
+		(gs->coinSpots + coinGot)->isVisible = 0;
+		mario->didGetCoin = 0;
+		mario->coinGotten = -1;
 	}
 	else // check goal
 	{
