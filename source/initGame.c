@@ -13,6 +13,7 @@ void initMario(Mario *mario)
     int x = 192;
     int y = 128;
     mario->moveSpeed = baseSpeed;
+    mario->speedBonus = 0;
     mario->imgptr_right = (short int *)marioImgs.right_data;
     mario->imgptr_left = (short int *)marioImgs.left_data;
     mario->imgptr_front = (short int *)marioImgs.front_data;

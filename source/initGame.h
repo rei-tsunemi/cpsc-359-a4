@@ -64,7 +64,7 @@ typedef struct
     int drawSize;
     int xStart, yStart;
     int xPos, yPos;
-    int moveSpeed;
+    int moveSpeed, speedBonus;
     short int *imgptr_front;
     short int *imgptr_back;
     short int *imgptr_right;

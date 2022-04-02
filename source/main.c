@@ -191,18 +191,24 @@ void checkCollision(int *x, int *y, int *xToCheck, int *yToCheck, int *flag)
 	}
 }
 
-void getCartSpeed(int *speed, int *x, int *y, int bg[Y_DIM][X_DIM])
+void getCartSpeed(int *speed, int *x, int *y, int bg[Y_DIM][X_DIM], int *speedBonus)
 {
+	if (*speedBonus)
+		return;
+
 	int colourPos = bg[*y / gridSize][*x / gridSize];
 	if (colourPos != 2)
+	{
 		*speed = baseSpeed * 4;
-	// *speed = baseSpeed;
+		*speedBonus = 0;
+	}
 	else
-
+	{
 		*speed = baseSpeed;
+	}
 }
 
-void determineButtonPressed(int i, int *x, int *y, int *status, int *speed)
+void determineButtonPressed(int i, int *x, int *y, int *status)
 {
 	// int mov = 32;
 	if (i == 5)
@@ -233,7 +239,6 @@ void determineButtonPressed(int i, int *x, int *y, int *status, int *speed)
 		else
 			(*x) += gridSize;
 	}
-	// delayMicroseconds(*speed);
 }
 
 void drawImage(int xD, int yD, int sizeX, int sizeY, Pixel *pixel, short int *image)
@@ -723,6 +728,41 @@ void drawPauseMenu(GameState *gamestate, int *x, int *y, Mario *m, int *status)
 	free(pix);
 	free(blk);
 }
+void determineValuePackEffect(Mario *mario, GameState *gs)
+{
+	Pixel *pixel = malloc(sizeof(Pixel));
+	int packChoices = 5;
+	int rng = rand() % packChoices;
+
+	if (rng == 0)
+	{
+		gs->score += 15;
+		drawScoreDisplay(gs, pixel);
+	}
+	else if (rng == 1)
+	{
+		gs->lives++;
+		drawLivesDisplay(gs, pixel);
+	}
+	else if (rng == 2)
+	{
+		gs->timeLeft += 25;
+	}
+	else if (rng == 3)
+	{
+		mario->moveSpeed += 200000;
+		mario->speedBonus = 1;
+	}
+	else if (rng == 4)
+	{
+		mario->moveSpeed -= 25000;
+		if (mario->moveSpeed <= 0)
+			mario->moveSpeed = 100;
+		mario->speedBonus = 1;
+	}
+	free(pixel);
+}
+
 void testForCollisions(Mario *mario,
 					   int *xD,
 					   int *yD,
@@ -752,6 +792,8 @@ void testForCollisions(Mario *mario,
 
 		drawImage(*xD, *yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_front);
 
+		gs->mario->moveSpeed = baseSpeed;
+		gs->mario->speedBonus = 0;
 		gs->mario->gotHit = 0;
 		gs->mario->canGetHit = 1;
 
@@ -762,6 +804,13 @@ void testForCollisions(Mario *mario,
 	{
 
 		int packPos = mario->packCollidedWith;
+		int colour = getColour(gs->bg[*yD / gridSize][*xD / gridSize]);
+
+		int drawSize = gs->itemblocks->drawSize;
+		drawBlock(drawSize, drawSize, *xD, *yD, colour, pixel);
+		drawImage(*xD, *yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_front);
+
+		determineValuePackEffect(mario, gs);
 
 		(gs->itemSpots + packPos)->isVisible = 0;
 		mario->didHitPack = 0;
@@ -801,7 +850,8 @@ void drawGameState(Pixel *pixel,
 	// press: for knowing which button was pressed
 	// i: for tracking the buttons
 	// speed: for holding the time delay to simulate speed ups and downs
-	int press, i, speed;
+	int press, i;
+	// int speed;
 	// speed = baseSpeed * 4;
 	// speed = baseSpeed;
 	while (status && gamestate->sceneStatus)
@@ -824,7 +874,9 @@ void drawGameState(Pixel *pixel,
 					press = i;
 					break; // break out of the for loop
 				}
-				// test if anything collided during reading input
+				// set previous position to stationary position if no longer reading input from snes
+				mario->xPrev = xD;
+				mario->yPrev = yD;
 			}
 		}
 
@@ -832,16 +884,19 @@ void drawGameState(Pixel *pixel,
 		// gamestate->mario->yPrev = yD;
 		mario->xPrev = xD;
 		mario->yPrev = yD;
-		getCartSpeed(&speed, &xD, &yD, gamestate->bg);			  // determine the speed
-		determineButtonPressed(press, &xD, &yD, &status, &speed); // find which direction mario should go
+		// getCartSpeed(&speed, &xD, &yD, gamestate->bg);			  // determine the speed
+		// determineButtonPressed(press, &xD, &yD, &status, &speed); // find which direction mario should go
 
+		getCartSpeed(&(mario->moveSpeed), &xD, &yD, gamestate->bg, &(mario->speedBonus));
+		determineButtonPressed(press, &xD, &yD, &status);
 		// gamestate->mario->xPos = xD;
 		// gamestate->mario->yPos = yD;
 		mario->xPos = xD;
 		mario->yPos = yD;
 
 		didMarioCollideWithAnything(&xD, &yD, gamestate);
-		delayMicroseconds(speed); // delay to make it seem likes the cart moves slower
+		// delayMicroseconds(speed); // delay to make it seem likes the cart moves slower
+		delayMicroseconds(mario->moveSpeed);
 
 		repaint(press, xD, yD, pixel, gamestate->bg);
 		testForCollisions(mario, &xD, &yD, pixel, gamestate, &status, &press);
@@ -1042,9 +1097,11 @@ int main()
 	Init_GPIO();			// init the clock, latch, data
 
 	/* initialize + get FBS */
+
 	framebufferstruct = initFbInfo();
-	/* pointers used for cart*/
-	determineStage();
+
+	srand(time(NULL)); // init rng
+	determineStage();  // start game
 
 	memset(framebufferstruct.fptr, 0, 1);
 	munmap(framebufferstruct.fptr, framebufferstruct.screenSize);
