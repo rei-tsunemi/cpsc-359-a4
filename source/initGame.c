@@ -13,6 +13,7 @@ void initMario(Mario *mario)
     int x = 192;
     int y = 128;
     mario->moveSpeed = baseSpeed;
+    mario->speedBonus = 0;
     mario->imgptr_right = (short int *)marioImgs.right_data;
     mario->imgptr_left = (short int *)marioImgs.left_data;
     mario->imgptr_front = (short int *)marioImgs.front_data;
@@ -26,6 +27,8 @@ void initMario(Mario *mario)
     mario->drawSize = gridSize;
     mario->canGetHit = 1;
     mario->gotHit = 0;
+    mario->didHitPack = 0;
+    mario->packCollidedWith = -1; // set to -1 to say didnt collide with an item
 }
 
 void initBug(BugSprite *bug)
@@ -52,6 +55,7 @@ void initCoin(Coin *coin){
     coin->coinPtr_left = (short int*) CoinImg.cleft_data;
     coin->coinPtr_front = (short int*) CoinImg.cfront_data;
     coin->coinPtr_right = (short int*) CoinImg.cright_data;
+
 }
 
 void initGoalPost(GoalPost *goal)
@@ -62,6 +66,7 @@ void initGoalPost(GoalPost *goal)
     goal->yPos = 704;
     goal->colour = 0xFF00;
 }
+
 
 void changeCoinAtPos(int i ,int xS, int yS, CoinPositions *coinposition)
 {
@@ -75,6 +80,7 @@ void changeItemAtPos(int i ,int xS, int yS, ItemBlockPositions *itemblocks)
     (itemblocks + i)->xStart = xS;
     (itemblocks + i)->yStart = yS;
     (itemblocks + i)->drawFace = 0;
+    (itemblocks + i)->isVisible = 0;
 }
 
 void changeBugsAtPos(int i,
@@ -94,17 +100,13 @@ void changeBugsAtPos(int i,
     (bugspot + i)->moveDirection = moveD;
 }
 
-void initScene1(GameState *gamestate,
-                BugPositions *bugspots,
-                ItemBlockPositions *itemSpots,
-                CoinPositions *coinSpots,
-                SpriteCount *numOfSprites)
+
+void initScene1(GameState *gamestate)
+
 {
+    int maxBugs = 15;
+    int maxItemBlocks = 25;
     int i, j;
-    // number of sprites to be in this scene
-    numOfSprites->bugs = 3;
-    numOfSprites->items = 1;
-    numOfSprites->coins = 1;
 
     // 1). i -> position in the struct array
     // 2). xS -> x start pos
@@ -113,11 +115,7 @@ void initScene1(GameState *gamestate,
     // 5). maxPosS -> the maximum the bug can move
     // 6). moveD -> move direction
     // 7). moveV -> up / down (2), left / right (1)
-    changeBugsAtPos(0, 320, 320, 0, 12, -1, 1, bugspots);
-    changeBugsAtPos(1, 480, 544, 0, 10, 1, 2, bugspots);
-    changeBugsAtPos(2, 1088, 160, 0, 25, 1, 2, bugspots);
-
-    changeItemAtPos(0, 704, 704, itemSpots);
+    // changeItemAtPos(0, 704, 704, itemSpots);
 
     changeCoinAtPos(0, 192, 704, coinSpots);
 
@@ -131,15 +129,20 @@ void initScene1(GameState *gamestate,
     gamestate->sceneStatus = 1;
     gamestate->scene = 1;
 
-   
-    gamestate->marioGotHit = 0;
-    // init mario
+    // init sprite count for each scene
+    gamestate->spritesForScene = malloc(sizeof(SpriteCount));
+    gamestate->spritesForScene->bugs = 3;
+    gamestate->spritesForScene->items = 1;
+
     gamestate->mario = malloc(sizeof(Mario));
     initMario(gamestate->mario);
 
     // init other sprites
     gamestate->bugs = malloc(sizeof(BugSprite));
     initBug(gamestate->bugs);
+    // changeBugsAtPos(0, 320, 320, 0, 12, -1, 1, bugspots);
+    // changeBugsAtPos(1, 480, 544, 0, 10, 1, 2, bugspots);
+    // changeBugsAtPos(2, 1088, 160, 0, 25, 1, 2, bugspots);
 
     gamestate->itemblocks = malloc(sizeof(ItemBlock));
     initItemBlock(gamestate->itemblocks);
@@ -150,6 +153,14 @@ void initScene1(GameState *gamestate,
     // init the goal post
     gamestate->goal = malloc(sizeof(GoalPost));
     initGoalPost(gamestate->goal);
+
+    gamestate->bugSpots = malloc(sizeof(BugPositions) * maxBugs);
+    changeBugsAtPos(0, 320, 320, 0, 12, -1, 1, gamestate->bugSpots);
+    changeBugsAtPos(1, 480, 544, 0, 10, 1, 2, gamestate->bugSpots);
+    changeBugsAtPos(2, 1088, 160, 0, 25, 1, 2, gamestate->bugSpots);
+
+    gamestate->itemSpots = malloc(sizeof(ItemBlockPositions) * maxItemBlocks);
+    changeItemAtPos(0, 704, 704, gamestate->itemSpots);
 
     // copy background 1 into the gamestate
     for (i = 0; i < Y_DIM; i++)
@@ -177,11 +188,14 @@ void initScene2(GameState *gamestate)
 
 void freeGameStateObjects(GameState *gamestate)
 {
-    // free everything
+    // free everything in the gamestate object
     free(gamestate->mario);
     free(gamestate->bugs);
     free(gamestate->itemblocks);
     free(gamestate->goal);
+    free(gamestate->bugSpots);
+    free(gamestate->itemSpots);
+    free(gamestate->spritesForScene);
 }
 
 void initAlphabet(Alphabet *alp)

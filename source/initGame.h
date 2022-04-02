@@ -56,29 +56,50 @@ typedef struct
 
 typedef struct
 {
+
+} EnemyImg;
+
+typedef struct
+{
     int drawSize;
     int xStart, yStart;
     int xPos, yPos;
-    int moveSpeed;
+    int moveSpeed, speedBonus;
     short int *imgptr_front;
     short int *imgptr_back;
     short int *imgptr_right;
     short int *imgptr_left;
     int xPrev, yPrev;
     int gotHit, canGetHit;
+    int didHitPack, packCollidedWith;
 
 } Mario;
 
 typedef struct
 {
-    int xPos;
-    int yPos;
+    int drawSize;
+    int itemsDropped; // number of items that are dropped
+    short int *valPtr_F;
+    short int *valPtr_s1;
+    short int *valPtr_s2;
+} ItemBlock;
+
+typedef struct
+{
     int drawSize;
     int moveSpeed;
     short int *imgptr_right;
     short int *imgptr_left;
 
 } BugSprite;
+
+typedef struct
+{
+    BugSprite *bugs;
+    MarioImg *marioImg;
+    ItemBlock *blockImg;
+
+} SpriteImages;
 
 typedef struct
 {
@@ -93,6 +114,7 @@ typedef struct
 
 typedef struct
 {
+
     int drawSize;
     int itemsDropped; // number of items that are dropped
     short int *valPtr_F;
@@ -111,9 +133,11 @@ typedef struct{
 
 typedef struct
 {
+
     int xStart;
     int yStart;
     int drawFace;
+    int isVisible;
 } ItemBlockPositions;
 
 typedef struct{
@@ -144,15 +168,18 @@ static int X_DIM = 60; // 60
 
 typedef struct
 {
-    int bg[33][60];
-    Mario *mario;
+    int bg[33][60]; // background
+    Mario *mario;   // mario pointer object
     BugSprite *bugs;
+    BugPositions *bugSpots;        // bug positions
+    ItemBlockPositions *itemSpots; // item positons
     ItemBlock *itemblocks;
     Coin *coins;
     GoalPost *goal;
+    SpriteCount *spritesForScene;
     int winCond, loseCond;
     int lives, score, timeLeft;
-    int scene, sceneStatus, marioGotHit;
+    int scene, sceneStatus;
 } GameState;
 
 static int baseSpeed = 55000;
@@ -184,11 +211,8 @@ void changeBugsAtPos(int i,
                      int moveV,
                      BugPositions *bugspot);
 
-void initScene1(GameState *gamestate,
-                BugPositions *bugspots,
-                ItemBlockPositions *itemSpots,
-                CoinPositions *coinposition,
-                SpriteCount *numOfSprites);
+void initScene1(GameState *gamestate);
+
 
 void initScene2(GameState *gamestate);
 
@@ -199,4 +223,10 @@ void initAlphabet(Alphabet *alp);
 
 void fillDigitArray(short int **digit);
 void freeDigitsToDrawObjects(DigitsToDraw *dtd);
+
 void initDigitsToDraw(DigitsToDraw *dtd);
+
+void initSpriteImgs(SpriteImages *imgs);
+
+void initDigitsToDraw(DigitsToDraw *dtd);
+

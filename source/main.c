@@ -49,13 +49,11 @@
 static unsigned int *gpioPtr; // get global gpio pointer
 static int globalButtons[16]; // to store the input value from the buttons / register sample buttons
 
-GameState *gamestate;		   // global gamestate
-DigitsToDraw *digitsToDraw;	   // global struct pointer to draw digits at their correct positions
-BugPositions *bugSpots;		   // global array of bug spots
-ItemBlockPositions *itemSpots; // global array of items spots
+GameState *gamestate;		// global gamestate
+DigitsToDraw *digitsToDraw; // global struct pointer to draw digits at their correct positions
+
 CoinPositions *coinSpots;	   // global array of coins spots
-SpriteCount *numOfSprites;	   // global number of sprites
-// static short int **digits;	   // global digits for printing to the screen
+
 
 // GPIO setup macros.
 #define INP_GPIO(g) *(gpioPtr + ((g) / 10)) &= ~(7 << (((g) % 10) * 3)) // set input
@@ -156,6 +154,14 @@ void Read_SNES()
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+/* Draw a pixel */
+void drawPixel(Pixel *pixel)
+{
+	long int location = (pixel->x + framebufferstruct.xOff) * (framebufferstruct.bits / 8) +
+						(pixel->y + framebufferstruct.yOff) * framebufferstruct.lineLength;
+	*((unsigned short int *)(framebufferstruct.fptr + location)) = pixel->color;
+}
+
 int getColour(int num)
 {
 	if (num == 0)
@@ -184,18 +190,24 @@ void checkCollision(int *x, int *y, int *xToCheck, int *yToCheck, int *flag)
 	}
 }
 
-void getCartSpeed(int *speed, int *x, int *y, int bg[Y_DIM][X_DIM])
+void getCartSpeed(int *speed, int *x, int *y, int bg[Y_DIM][X_DIM], int *speedBonus)
 {
+	if (*speedBonus)
+		return;
+
 	int colourPos = bg[*y / gridSize][*x / gridSize];
 	if (colourPos != 2)
+	{
 		*speed = baseSpeed * 4;
-	// *speed = baseSpeed;
+		*speedBonus = 0;
+	}
 	else
-
+	{
 		*speed = baseSpeed;
+	}
 }
 
-void determineButtonPressed(int i, int *x, int *y, int *status, int *speed)
+void determineButtonPressed(int i, int *x, int *y, int *status)
 {
 	// int mov = 32;
 	if (i == 5)
@@ -226,7 +238,6 @@ void determineButtonPressed(int i, int *x, int *y, int *status, int *speed)
 		else
 			(*x) += gridSize;
 	}
-	// delayMicroseconds(*speed);
 }
 
 void drawImage(int xD, int yD, int sizeX, int sizeY, Pixel *pixel, short int *image)
@@ -404,20 +415,23 @@ void bugCollision(int *xD, int *yD, GameState *gs)
 	}
 }
 
-void drawBugs(Pixel *pixel, BugSprite *bug, GameState *gs)
+// void drawBugs(Pixel *pixel, BugSprite *bug, GameState *gs)
+void drawBugs(Pixel *pixel, GameState *gs)
 {
 	int i, colour, currentShift, moveD;
 	int xD, yD, xPrev, yPrev;
-	int bugsToPrint = numOfSprites->bugs;
+	// int bugsToPrint = numOfSprites->bugs;
+	int bugsToPrint = gs->spritesForScene->bugs;
+	BugSprite *bug = gs->bugs;
 	// int offSet = gridSize;
 	for (i = 0; i < bugsToPrint; i++)
 	{
 
-		currentShift = (bugSpots + i)->posShift;
-		moveD = (bugSpots + i)->moveDirection;
+		currentShift = (gs->bugSpots + i)->posShift;
+		moveD = (gs->bugSpots + i)->moveDirection;
 		bugCollision(&xD, &yD, gs);
 
-		findBugCurrentSpot(&xD, &yD, &xPrev, &yPrev, (bugSpots + i));
+		findBugCurrentSpot(&xD, &yD, &xPrev, &yPrev, (gs->bugSpots + i));
 
 		currentShift++;
 
@@ -431,16 +445,16 @@ void drawBugs(Pixel *pixel, BugSprite *bug, GameState *gs)
 		else
 			drawSprite(xD, yD, bug->drawSize, bug->drawSize, pixel, bug->imgptr_left, -1);
 
-		if ((currentShift + 1) == (bugSpots + i)->maxPosShift)
+		if ((currentShift + 1) == (gs->bugSpots + i)->maxPosShift)
 		{
 			currentShift = 0;
 			moveD *= -1;
-			(bugSpots + i)->xStart = xD;
-			(bugSpots + i)->yStart = yD;
+			(gs->bugSpots + i)->xStart = xD;
+			(gs->bugSpots + i)->yStart = yD;
 		}
 
-		(bugSpots + i)->posShift = currentShift;
-		(bugSpots + i)->moveDirection = moveD;
+		(gs->bugSpots + i)->posShift = currentShift;
+		(gs->bugSpots + i)->moveDirection = moveD;
 	}
 	delayMicroseconds(35000);
 }
@@ -452,44 +466,48 @@ void *drawBugsAtPos(void *param)
 
 	while (gamestate->sceneStatus)
 	{
-		drawBugs(pixel, gamestate->bugs, gamestate);
+		// drawBugs(pixel, gamestate->bugs, gamestate);
+		drawBugs(pixel, gamestate);
 	}
 	free(pixel);
 
 	pthread_exit(0);
 }
 
-void drawItems(Pixel *pixel, ItemBlock *itm, GameState *gs)
+void drawValuePack(Pixel *pixel, GameState *gs)
 {
-	int numOfItems = numOfSprites->items;
-	int i, xD, yD;
+	ItemBlock *itm = gs->itemblocks;
+	int numOfItems = gs->spritesForScene->items;
+	int i, drawFace, xD, yD, visible;
 	for (i = 0; i < numOfItems; i++)
 	{
-		xD = (itemSpots + i)->xStart;
-		yD = (itemSpots + i)->yStart;
-		int j = (itemSpots + i)->drawFace;
-		// xD = 704;
-		// yD = 704;
-		if (j == 0)
-		{
-			drawSprite(xD, yD, itm->drawSize, itm->drawSize, pixel, itm->valPtr_F, -16391);
-		}
-		else if (j == 1)
-		{
-			drawSprite(xD, yD, itm->drawSize, itm->drawSize, pixel, itm->valPtr_s1, -16391);
-		}
-		else if (j == 2)
-		{
-			drawSprite(xD, yD, itm->drawSize, itm->drawSize, pixel, itm->valPtr_s2, -16391);
-		}
 
-		j++;
-		if (j == 3)
-			j = 0;
-		(itemSpots + i)->drawFace = j;
+		visible = (gs->itemSpots + i)->isVisible;
+		if (visible)
+		{
+			xD = (gs->itemSpots + i)->xStart;
+			yD = (gs->itemSpots + i)->yStart;
+			drawFace = (gs->itemSpots + i)->drawFace;
+
+			if (drawFace == 0)
+				drawSprite(xD, yD, itm->drawSize, itm->drawSize, pixel, itm->valPtr_F, -16391);
+
+			else if (drawFace == 1)
+				drawSprite(xD, yD, itm->drawSize, itm->drawSize, pixel, itm->valPtr_s1, -16391);
+
+			else if (drawFace == 2)
+				drawSprite(xD, yD, itm->drawSize, itm->drawSize, pixel, itm->valPtr_s2, -16391);
+
+			drawFace++;
+			if (drawFace == 3)
+				drawFace = 0;
+
+			(gs->itemSpots + i)->drawFace = drawFace;
+		}
 	}
-	Wait(100000);
+	Wait(200000);
 }
+
 
 void drawCoins(Pixel *pixel, Coin *cn, GameState *gs)
 {
@@ -527,15 +545,22 @@ void drawCoins(Pixel *pixel, Coin *cn, GameState *gs)
 	Wait(100000);
 }
 
-void *valuePackThread(void *param)
+void *animateValuePack(void *param)(void *param)
 {
 	GameState *gamestate = (GameState *)param;
 	Pixel *pix = malloc(sizeof(Pixel));
+	// sleep(10); // sleeping ten seconds before they appear
+	int i;
+	int num = gamestate->spritesForScene->items;
+
+	// set the visible flag
+	for (i = 0; i < num; i++)
+		(gamestate->itemSpots + i)->isVisible = 1;
+
 	while (gamestate->sceneStatus)
 	{
-		drawItems(pix, gamestate->itemblocks, gamestate);
+		drawValuePack(pix, gamestate);
 		drawCoins(pix, gamestate->coins, gamestate);
-
 	}
 	free(pix);
 
@@ -648,21 +673,39 @@ void didMarioCollideWithAnything(int *xD, int *yD, GameState *gs)
 	// bug x and y positions ( move and previous )
 	int bX, bY, bxP, byP;
 	int j;
-
+	int numOfBugs = gs->spritesForScene->bugs;
 	// test first if mario collided with bugs
-	for (j = 0; j < numOfSprites->bugs; j++)
+	for (j = 0; j < numOfBugs; j++)
 	{
-		findBugCurrentSpot(&bX, &bY, &bxP, &byP, (bugSpots + j));
-		// checkCollision(xD, yD, &bX, &bY, &(gs->marioGotHit));
-		// checkCollision(xD, yD, &bxP, &byP, &(gs->marioGotHit));
+		findBugCurrentSpot(&bX, &bY, &bxP, &byP, (gs->bugSpots + j));
+
 		if (gs->mario->canGetHit)
 		{
 			checkCollision(xD, yD, &bX, &bY, &(gs->mario->gotHit));
 			checkCollision(xD, yD, &bxP, &byP, &(gs->mario->gotHit));
 		}
-		if (gs->marioGotHit == 1)
+		if (gs->mario->gotHit == 1)
 		{
 			// printf("mario got hit ");
+			return;
+		}
+	}
+	int numOfPacks = gs->spritesForScene->items;
+	int visible;
+	for (j = 0; j < numOfPacks; j++)
+	{
+		visible = (gs->itemSpots + j)->isVisible;
+
+		if (visible)
+		{
+			bX = (gs->itemSpots + j)->xStart;
+			bY = (gs->itemSpots + j)->yStart;
+			checkCollision(xD, yD, &bX, &bY, &(gs->mario->didHitPack));
+		}
+
+		if (gs->mario->didHitPack)
+		{
+			gs->mario->packCollidedWith = j;
 			return;
 		}
 	}
@@ -743,6 +786,41 @@ void drawPauseMenu(GameState *gamestate, int *x, int *y, Mario *m, int *status)
 	free(pix);
 	free(blk);
 }
+void determineValuePackEffect(Mario *mario, GameState *gs)
+{
+	Pixel *pixel = malloc(sizeof(Pixel));
+	int packChoices = 5;
+	int rng = rand() % packChoices;
+
+	if (rng == 0)
+	{
+		gs->score += 15;
+		drawScoreDisplay(gs, pixel);
+	}
+	else if (rng == 1)
+	{
+		gs->lives++;
+		drawLivesDisplay(gs, pixel);
+	}
+	else if (rng == 2)
+	{
+		gs->timeLeft += 25;
+	}
+	else if (rng == 3)
+	{
+		mario->moveSpeed += 200000;
+		mario->speedBonus = 1;
+	}
+	else if (rng == 4)
+	{
+		mario->moveSpeed -= 25000;
+		if (mario->moveSpeed <= 0)
+			mario->moveSpeed = 100;
+		mario->speedBonus = 1;
+	}
+	free(pixel);
+}
+
 void testForCollisions(Mario *mario,
 					   int *xD,
 					   int *yD,
@@ -772,11 +850,29 @@ void testForCollisions(Mario *mario,
 
 		drawSprite(*xD, *yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_front, -31505);
 
+		gs->mario->moveSpeed = baseSpeed;
+		gs->mario->speedBonus = 0;
 		gs->mario->gotHit = 0;
 		gs->mario->canGetHit = 1;
 
 		if (gs->lives >= 0)
 			drawLivesDisplay(gs, pixel);
+	}
+	else if (mario->didHitPack)
+	{
+
+		int packPos = mario->packCollidedWith;
+		int colour = getColour(gs->bg[*yD / gridSize][*xD / gridSize]);
+
+		int drawSize = gs->itemblocks->drawSize;
+		drawBlock(drawSize, drawSize, *xD, *yD, colour, pixel);
+		drawImage(*xD, *yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_front);
+
+		determineValuePackEffect(mario, gs);
+
+		(gs->itemSpots + packPos)->isVisible = 0;
+		mario->didHitPack = 0;
+		mario->packCollidedWith = -1;
 	}
 	else // check goal
 	{
@@ -793,7 +889,6 @@ void testForCollisions(Mario *mario,
 }
 
 void drawGameState(Pixel *pixel,
-				   // Sprite *currentSprite,
 				   GameState *gamestate,
 				   Pixel *block,
 				   int bg[Y_DIM][X_DIM])
@@ -806,18 +901,17 @@ void drawGameState(Pixel *pixel,
 
 	pthread_attr_t attr;
 	pthread_attr_init(&attr);
-	pthread_t bugThread;
-	pthread_t timeT;
-	pthread_t itemThread;
+	pthread_t bugThread, timeT, itemThread;
 
 	pthread_create(&bugThread, &attr, drawBugsAtPos, gamestate);
-	pthread_create(&itemThread, &attr, valuePackThread, gamestate);
+	pthread_create(&itemThread, &attr, animateValuePack, gamestate);
 	pthread_create(&timeT, &attr, timerThread, gamestate);
 
 	// press: for knowing which button was pressed
 	// i: for tracking the buttons
 	// speed: for holding the time delay to simulate speed ups and downs
-	int press, i, speed;
+	int press, i;
+	// int speed;
 	// speed = baseSpeed * 4;
 	// speed = baseSpeed;
 	while (status && (gamestate->sceneStatus == 1))
@@ -840,7 +934,9 @@ void drawGameState(Pixel *pixel,
 					press = i;
 					break; // break out of the for loop
 				}
-				// test if anything collided during reading input
+				// set previous position to stationary position if no longer reading input from snes
+				mario->xPrev = xD;
+				mario->yPrev = yD;
 			}
 		}
 
@@ -848,18 +944,21 @@ void drawGameState(Pixel *pixel,
 		// gamestate->mario->yPrev = yD;
 		mario->xPrev = xD;
 		mario->yPrev = yD;
-		getCartSpeed(&speed, &xD, &yD, gamestate->bg);			  // determine the speed
-		determineButtonPressed(press, &xD, &yD, &status, &speed); // find which direction mario should go
+		// getCartSpeed(&speed, &xD, &yD, gamestate->bg);			  // determine the speed
+		// determineButtonPressed(press, &xD, &yD, &status, &speed); // find which direction mario should go
 
+		getCartSpeed(&(mario->moveSpeed), &xD, &yD, gamestate->bg, &(mario->speedBonus));
+		determineButtonPressed(press, &xD, &yD, &status);
 		// gamestate->mario->xPos = xD;
 		// gamestate->mario->yPos = yD;
 		mario->xPos = xD;
 		mario->yPos = yD;
 
 		didMarioCollideWithAnything(&xD, &yD, gamestate);
-		delayMicroseconds(speed); // delay to make it seem likes the cart moves slower
+		// delayMicroseconds(speed); // delay to make it seem likes the cart moves slower
+		delayMicroseconds(mario->moveSpeed);
 
-		repaint(press, xD, yD, block, gamestate->bg);
+		repaint(press, xD, yD, pixel, gamestate->bg);
 		testForCollisions(mario, &xD, &yD, pixel, gamestate, &status, &press);
 
 		if (i == 4)
@@ -892,14 +991,6 @@ void drawGameState(Pixel *pixel,
 	pthread_join(bugThread, NULL);
 	pthread_join(timeT, NULL);
 	pthread_join(itemThread, NULL);
-}
-
-/* Draw a pixel */
-void drawPixel(Pixel *pixel)
-{
-	long int location = (pixel->x + framebufferstruct.xOff) * (framebufferstruct.bits / 8) +
-						(pixel->y + framebufferstruct.yOff) * framebufferstruct.lineLength;
-	*((unsigned short int *)(framebufferstruct.fptr + location)) = pixel->color;
 }
 
 void screenMenu(int *game)
@@ -989,7 +1080,6 @@ void drawNewScene(GameState *gamestate)
 	}
 	drawHeader(alp);
 	drawLivesDisplay(gamestate, pixel);
-	// drawImage(384, 0, 64, 64, pixel, *(digits + *stage)); // draws the current stage
 	drawLevelDisplay(&(gamestate->scene), pixel);
 	drawScoreDisplay(gamestate, pixel);
 	drawTime(gamestate, pixel);
@@ -1008,30 +1098,17 @@ void drawNewScene(GameState *gamestate)
 			  pixel,
 			  gamestate->mario->imgptr_front, -31505);
 
-	int bugsInScene = numOfSprites->bugs;
-	int i;
-	for (i = 0; i < bugsInScene; i++)
-	{
-		drawImage(bugSpots->xStart,
-				  bugSpots->yStart,
-				  gridSize,
-				  gridSize,
-				  pixel,
-				  gamestate->bugs->imgptr_left);
-	}
 	free(pixel);
 	free(alp);
 }
 
 void determineStage()
 {
-	int maxObjects = 15;
 	gamestate = malloc(sizeof(GameState));
 	digitsToDraw = malloc(sizeof(DigitsToDraw));
-	bugSpots = malloc(sizeof(BugPositions) * maxObjects);
-	itemSpots = malloc(sizeof(ItemBlockPositions) * maxObjects);
+
 	coinSpots = malloc(sizeof(CoinPositions) * maxObjects);
-	numOfSprites = malloc(sizeof(SpriteCount));
+	
 
 	initScene1(gamestate, bugSpots, itemSpots, coinSpots, numOfSprites);
 	gamestate->scene = 0;
@@ -1065,6 +1142,7 @@ void determineStage()
 		if (gamestate->scene == 0)
 		{
 			screenMenu(&gameOn);
+
 			initScene1(gamestate, bugSpots, itemSpots, coinSpots, numOfSprites);
 		}
 		else if (gamestate->scene == 1)
@@ -1091,24 +1169,20 @@ void determineStage()
 			gameOn = 0;
 		}
 	}
-	// drawImage(100, 100, pixel, imagePtr);
 
 	/* free pixel's allocated memory */
 	free(pixel);
 	free(block);
-	// free(alp);
-	// free(num);
+
+	free(alp);
+
 	freeGameStateObjects(gamestate);
 	freeDigitsToDrawObjects(digitsToDraw);
 
-	free(numOfSprites);
-	free(bugSpots);
-	free(itemSpots);
 	free(coinSpots);
 
 	free(gamestate);
 	free(digitsToDraw);
-	// free(digits);
 }
 
 int main()
@@ -1118,9 +1192,11 @@ int main()
 	Init_GPIO();			// init the clock, latch, data
 
 	/* initialize + get FBS */
+
 	framebufferstruct = initFbInfo();
-	/* pointers used for cart*/
-	determineStage();
+
+	srand(time(NULL)); // init rng
+	determineStage();  // start game
 
 	memset(framebufferstruct.fptr, 0, 1);
 	munmap(framebufferstruct.fptr, framebufferstruct.screenSize);
