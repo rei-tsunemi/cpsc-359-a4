@@ -1115,6 +1115,7 @@ void drawPauseMenu(GameState *gamestate, int *x, int *y, Mario *m, int *status)
 			{
 				gamestate->scene = 1;
 				gamestate->sceneStatus = 0;
+				gamestate->winCond = 0;
 				gamestate->score = 0;
 				paused = 0;
 			}
