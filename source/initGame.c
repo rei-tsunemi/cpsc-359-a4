@@ -43,7 +43,15 @@ void initItemBlock(ItemBlock *itemblock)
     itemblock->valPtr_F = (short int*) ValuePackImg.packf_data;
     itemblock->valPtr_s1 = (short int*) ValuePackImg.packs1_data;
     itemblock->valPtr_s2 = (short int*) ValuePackImg.packs2_data;
+}
 
+void initCoin(Coin *coin){
+    coin->drawSize = gridSize;
+    coin->itemsDropped = 3; // 4 items are dropped by an item block
+    coin->coinPtr_side = (short int*) CoinImg.cside_data;
+    coin->coinPtr_left = (short int*) CoinImg.cleft_data;
+    coin->coinPtr_front = (short int*) CoinImg.cfront_data;
+    coin->coinPtr_right = (short int*) CoinImg.cright_data;
 }
 
 void initGoalPost(GoalPost *goal)
@@ -53,6 +61,13 @@ void initGoalPost(GoalPost *goal)
     goal->xPos = 1792;
     goal->yPos = 704;
     goal->colour = 0xFF00;
+}
+
+void changeCoinAtPos(int i ,int xS, int yS, CoinPositions *coinposition)
+{
+    (coinposition + i)->xStart = xS;
+    (coinposition + i)->yStart = yS;
+    (coinposition + i)->drawFace = 0;
 }
 
 void changeItemAtPos(int i ,int xS, int yS, ItemBlockPositions *itemblocks)
@@ -82,12 +97,14 @@ void changeBugsAtPos(int i,
 void initScene1(GameState *gamestate,
                 BugPositions *bugspots,
                 ItemBlockPositions *itemSpots,
+                CoinPositions *coinSpots,
                 SpriteCount *numOfSprites)
 {
     int i, j;
     // number of sprites to be in this scene
     numOfSprites->bugs = 3;
     numOfSprites->items = 1;
+    numOfSprites->coins = 1;
 
     // 1). i -> position in the struct array
     // 2). xS -> x start pos
@@ -101,6 +118,8 @@ void initScene1(GameState *gamestate,
     changeBugsAtPos(2, 1088, 160, 0, 25, 1, 2, bugspots);
 
     changeItemAtPos(0, 704, 704, itemSpots);
+
+    changeCoinAtPos(0, 192, 704, coinSpots);
 
     // init important game state stuff
     gamestate->timeLeft = 300;
@@ -124,6 +143,9 @@ void initScene1(GameState *gamestate,
 
     gamestate->itemblocks = malloc(sizeof(ItemBlock));
     initItemBlock(gamestate->itemblocks);
+    
+    gamestate->coins = malloc(sizeof(Coin));
+    initCoin(gamestate->coins);
 
     // init the goal post
     gamestate->goal = malloc(sizeof(GoalPost));

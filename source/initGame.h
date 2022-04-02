@@ -100,12 +100,27 @@ typedef struct
     short int *valPtr_s2;
 } ItemBlock;
 
+typedef struct{
+    int drawSize;
+    int itemsDropped; // number of items that are dropped
+    short int *coinPtr_side;
+    short int *coinPtr_left;
+    short int *coinPtr_front;
+    short int *coinPtr_right;
+} Coin;
+
 typedef struct
 {
     int xStart;
     int yStart;
     int drawFace;
 } ItemBlockPositions;
+
+typedef struct{
+    int xStart;
+    int yStart;
+    int drawFace;
+} CoinPositions;
 
 typedef struct
 {
@@ -121,6 +136,7 @@ typedef struct
 {
     int bugs;
     int items;
+    int coins;
 } SpriteCount;
 
 static int Y_DIM = 33; // 33
@@ -132,6 +148,7 @@ typedef struct
     Mario *mario;
     BugSprite *bugs;
     ItemBlock *itemblocks;
+    Coin *coins;
     GoalPost *goal;
     int winCond, loseCond;
     int lives, score, timeLeft;
@@ -149,7 +166,12 @@ void initMario(Mario *mario);
 void initBug(BugSprite *bug);
 
 void initItemBlock(ItemBlock *itemblock);
+
+void initCoin(Coin *coin);
+
 void initGoalPost(GoalPost *goal);
+
+void changeCoinAtPos(int i ,int xS, int yS, CoinPositions *coinposition);
 
 void changeItemAtPos(int i, int xS, int yS, ItemBlockPositions *itemblocks);
 
@@ -165,6 +187,7 @@ void changeBugsAtPos(int i,
 void initScene1(GameState *gamestate,
                 BugPositions *bugspots,
                 ItemBlockPositions *itemSpots,
+                CoinPositions *coinposition,
                 SpriteCount *numOfSprites);
 
 void initScene2(GameState *gamestate);

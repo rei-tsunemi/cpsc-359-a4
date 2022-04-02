@@ -53,6 +53,7 @@ GameState *gamestate;		   // global gamestate
 DigitsToDraw *digitsToDraw;	   // global struct pointer to draw digits at their correct positions
 BugPositions *bugSpots;		   // global array of bug spots
 ItemBlockPositions *itemSpots; // global array of items spots
+CoinPositions *coinSpots;	   // global array of coins spots
 SpriteCount *numOfSprites;	   // global number of sprites
 // static short int **digits;	   // global digits for printing to the screen
 
@@ -238,8 +239,25 @@ void drawImage(int xD, int yD, int sizeX, int sizeY, Pixel *pixel, short int *im
 			pixel->color = image[i];
 			pixel->x = x + xD;
 			pixel->y = y + yD;
-			// -31505 is the background for mario
-			if (image[i] != -31505)
+
+			drawPixel(pixel);
+
+			i++;
+		}
+	}
+}
+
+void drawSprite(int xD, int yD, int sizeX, int sizeY, Pixel *pixel, short int *image, unsigned int nocolor)
+{
+	int i = 0;
+	for (int y = 0; y < sizeX; y++) // image height
+	{
+		for (int x = 0; x < sizeY; x++) // image width
+		{
+			pixel->color = image[i];
+			pixel->x = x + xD;
+			pixel->y = y + yD;
+			if (image[i] != nocolor)
 				drawPixel(pixel);
 			i++;
 		}
@@ -409,9 +427,9 @@ void drawBugs(Pixel *pixel, BugSprite *bug, GameState *gs)
 		bugCollision(&xD, &yD, gs);
 
 		if (moveD == 1)
-			drawImage(xD, yD, bug->drawSize, bug->drawSize, pixel, bug->imgptr_right);
+			drawSprite(xD, yD, bug->drawSize, bug->drawSize, pixel, bug->imgptr_right, -1);
 		else
-			drawImage(xD, yD, bug->drawSize, bug->drawSize, pixel, bug->imgptr_left);
+			drawSprite(xD, yD, bug->drawSize, bug->drawSize, pixel, bug->imgptr_left, -1);
 
 		if ((currentShift + 1) == (bugSpots + i)->maxPosShift)
 		{
@@ -454,21 +472,57 @@ void drawItems(Pixel *pixel, ItemBlock *itm, GameState *gs)
 		// yD = 704;
 		if (j == 0)
 		{
-			drawImage(xD, yD, itm->drawSize, itm->drawSize, pixel, itm->valPtr_F);
+			drawSprite(xD, yD, itm->drawSize, itm->drawSize, pixel, itm->valPtr_F, -16391);
 		}
 		else if (j == 1)
 		{
-			drawImage(xD, yD, itm->drawSize, itm->drawSize, pixel, itm->valPtr_s1);
+			drawSprite(xD, yD, itm->drawSize, itm->drawSize, pixel, itm->valPtr_s1, -16391);
 		}
 		else if (j == 2)
 		{
-			drawImage(xD, yD, itm->drawSize, itm->drawSize, pixel, itm->valPtr_s2);
+			drawSprite(xD, yD, itm->drawSize, itm->drawSize, pixel, itm->valPtr_s2, -16391);
 		}
 
 		j++;
 		if (j == 3)
 			j = 0;
 		(itemSpots + i)->drawFace = j;
+	}
+	Wait(100000);
+}
+
+void drawCoins(Pixel *pixel, Coin *cn, GameState *gs)
+{
+	int numOfCoins = numOfSprites->coins;
+	int i, xD, yD;
+	for (i = 0; i < numOfCoins; i++)
+	{
+		xD = (coinSpots + i)->xStart;
+		yD = (coinSpots + i)->yStart;
+		int j = (coinSpots + i)->drawFace;
+		// xD = 704;
+		// yD = 704;
+		if (j == 0)
+		{
+			drawSprite(xD, yD, cn->drawSize, cn->drawSize, pixel, cn->coinPtr_side, 1215);
+		}
+		else if (j == 1)
+		{
+			drawSprite(xD, yD, cn->drawSize, cn->drawSize, pixel, cn->coinPtr_left, 1215);
+		}
+		else if (j == 2)
+		{
+			drawSprite(xD, yD, cn->drawSize, cn->drawSize, pixel, cn->coinPtr_front, 1215);
+		}
+		else if (j == 3)
+		{
+			drawSprite(xD, yD, cn->drawSize, cn->drawSize, pixel, cn->coinPtr_right, 1215);
+		}
+
+		j++;
+		if (j == 4)
+			j = 0;
+		(coinSpots + i)->drawFace = j;
 	}
 	Wait(100000);
 }
@@ -480,6 +534,8 @@ void *valuePackThread(void *param)
 	while (gamestate->sceneStatus)
 	{
 		drawItems(pix, gamestate->itemblocks, gamestate);
+		drawCoins(pix, gamestate->coins, gamestate);
+
 	}
 	free(pix);
 
@@ -714,7 +770,7 @@ void testForCollisions(Mario *mario,
 		gs->mario->xPrev = *xD;
 		gs->mario->yPrev = *yD;
 
-		drawImage(*xD, *yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_front);
+		drawSprite(*xD, *yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_front, -31505);
 
 		gs->mario->gotHit = 0;
 		gs->mario->canGetHit = 1;
@@ -818,13 +874,13 @@ void drawGameState(Pixel *pixel,
 			//break;
 		}
 		else if (press == 5)
-			drawImage(xD, yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_back);
+			drawSprite(xD, yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_back, -31505);
 		else if (press == 6)
-			drawImage(xD, yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_front);
+			drawSprite(xD, yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_front, -31505);
 		else if (press == 7)
-			drawImage(xD, yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_left);
+			drawSprite(xD, yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_left, -31505);
 		else if (press == 8)
-			drawImage(xD, yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_right);
+			drawSprite(xD, yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_right, -31505);
 	}
 	if (status == 0)
 	{
@@ -945,12 +1001,12 @@ void drawNewScene(GameState *gamestate)
 			  gamestate->goal->yPos,
 			  gamestate->goal->colour,
 			  pixel);
-	drawImage(gamestate->mario->xPos,
+	drawSprite(gamestate->mario->xPos,
 			  gamestate->mario->yPos,
 			  gridSize,
 			  gridSize,
 			  pixel,
-			  gamestate->mario->imgptr_front);
+			  gamestate->mario->imgptr_front, -31505);
 
 	int bugsInScene = numOfSprites->bugs;
 	int i;
@@ -974,12 +1030,20 @@ void determineStage()
 	digitsToDraw = malloc(sizeof(DigitsToDraw));
 	bugSpots = malloc(sizeof(BugPositions) * maxObjects);
 	itemSpots = malloc(sizeof(ItemBlockPositions) * maxObjects);
+	coinSpots = malloc(sizeof(CoinPositions) * maxObjects);
 	numOfSprites = malloc(sizeof(SpriteCount));
 
-	initScene1(gamestate, bugSpots, itemSpots, numOfSprites);
+	initScene1(gamestate, bugSpots, itemSpots, coinSpots, numOfSprites);
 	gamestate->scene = 0;
 
 	initDigitsToDraw(digitsToDraw);
+
+	// loop to determine background colour for the sprites
+	// short int * cfront = gamestate->itemblocks->valPtr_F;
+	// for(int i = 0; i < (32*32); i++){
+	// 	printf("%d ",*(cfront + i));
+	// }
+	// exit(0);
 
 	// Alphabet *alp = malloc(sizeof(Alphabet));
 
@@ -1001,12 +1065,12 @@ void determineStage()
 		if (gamestate->scene == 0)
 		{
 			screenMenu(&gameOn);
-			initScene1(gamestate, bugSpots, itemSpots, numOfSprites);
+			initScene1(gamestate, bugSpots, itemSpots, coinSpots, numOfSprites);
 		}
 		else if (gamestate->scene == 1)
 		{
 			if(gamestate->sceneStatus == 0){
-				initScene1(gamestate, bugSpots, itemSpots, numOfSprites);
+				initScene1(gamestate, bugSpots, itemSpots, coinSpots, numOfSprites);
 			} else if(gamestate->sceneStatus == 1){
 				drawNewScene(gamestate);
 				drawGameState(pixel, gamestate, block, gamestate->bg);
@@ -1040,6 +1104,7 @@ void determineStage()
 	free(numOfSprites);
 	free(bugSpots);
 	free(itemSpots);
+	free(coinSpots);
 
 	free(gamestate);
 	free(digitsToDraw);
