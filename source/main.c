@@ -198,6 +198,7 @@ void checkCollision(int *x, int *y, int *xToCheck, int *yToCheck, int *flag)
 void getCartSpeed(int *speed, int *x, int *y, int bg[Y_DIM][X_DIM], int *speedBonus)
 {
 
+	// *speed = baseSpeed;
 	int colourPos = bg[*y / gridSize][*x / gridSize];
 	if (colourPos != 2)
 	{
@@ -767,7 +768,7 @@ void determineValuePackEffect(Mario *mario, GameState *gs)
 	Pixel *pixel = malloc(sizeof(Pixel));
 	int packChoices = 5;
 	int rng = rand() % packChoices;
-
+	printf("pack value is %d\n", rng);
 	if (rng == 0)
 	{
 		gs->score += 15;
@@ -784,7 +785,8 @@ void determineValuePackEffect(Mario *mario, GameState *gs)
 	}
 	else if (rng == 3)
 	{
-		mario->moveSpeed += 200000;
+		// mario->moveSpeed += 200000;
+		mario->moveSpeed += 1;
 		mario->speedBonus = 1;
 	}
 	else if (rng == 4)
@@ -897,6 +899,20 @@ void testForCollisions(Mario *mario,
 	}
 }
 
+void checkForLoseCond(GameState *gs, int *flag)
+{
+	if (gs->lives <= 0)
+	{
+		gs->loseCond = 1;
+		*flag = 0;
+	}
+	else if (gs->timeLeft == -1)
+	{
+		gs->loseCond = 2;
+		*flag = 0;
+	}
+}
+
 void drawGameState(Pixel *pixel,
 				   GameState *gamestate,
 				   Pixel *block,
@@ -926,6 +942,8 @@ void drawGameState(Pixel *pixel,
 	while (status && (gamestate->sceneStatus == 1))
 	{
 		int pressed = 0;
+		// checkForLoseCond(gamestate, status);
+
 		while (!pressed)
 		{
 			Read_SNES();
@@ -947,7 +965,11 @@ void drawGameState(Pixel *pixel,
 				mario->xPrev = xD;
 				mario->yPrev = yD;
 			}
+			checkForLoseCond(gamestate, pressed);
+			checkForLoseCond(gamestate, status);
 		}
+		if (!status)
+			break;
 
 		// gamestate->mario->xPrev = xD;
 		// gamestate->mario->yPrev = yD;
@@ -1231,6 +1253,9 @@ void stageNavigation(GameState *gamestate, Pixel *pixel, Pixel *block)
 
 void winloseCondCheck(GameState *gamestate, Pixel *pixel)
 {
+	if (gamestate->loseCond == 1)
+	{
+	}
 	if (gamestate->winCond == 1)
 	{
 		calcScenceEndScore(gamestate, pixel);
