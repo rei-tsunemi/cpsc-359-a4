@@ -727,83 +727,25 @@ void didMarioCollideWithAnything(int *xD, int *yD, GameState *gs)
 			return;
 		}
 	}
-}
-
-void drawPauseMenu(GameState *gamestate, int *x, int *y, Mario *m, int *status)
-{
-	Pixel *pix = malloc(sizeof(Pixel));
-	Pixel *blk = malloc(sizeof(Pixel));
-	int paused = 1;
-	int numOfButtons = 16; // number of buttons on snes
-	int i;
-	int restart = 0;
-	int quit = 0;
-	int xStart = 420;
-	int yStart = 250;
-
-	short int *pausemenuPtr = (short int *)pause_M.pixel_data;
-	short int *restartPtr = (short int *)pause_R.pixel_data;
-	short int *quitgamePtr = (short int *)pause_Q.pixel_data;
-
-	drawImage(xStart, yStart, 576, 1056, pix, pausemenuPtr);
-	while (paused)
+	int numOfCoins = gs->spritesForScene->coins;
+	for (j = 0; j < numOfCoins; j++)
 	{
-		int pressed = 0;
-		while (!pressed)
+		visible = (gs->coinSpots + j)->isVisible;
+		if (visible)
 		{
-			Read_SNES();
-			for (i = 1; i <= numOfButtons; i++)
-			{
-				if ((i >= 4 || i <= 8) && *(globalButtons + i) == 0)
-				{
-					pressed = 1;
-					break; // break out of the for loop
-				}
-			}
+			bX = (gs->coinSpots + j)->xStart;
+			bY = (gs->coinSpots + j)->yStart;
+			checkCollision(xD, yD, &bX, &bY, &(gs->mario->didGetCoin));
 		}
-		if (i == 4)
+		if (gs->mario->didGetCoin)
 		{
-			(*x) = m->xPos;
-			(*y) = m->yPos;
-			paused = 0;
-			*status = 1;
-			gamestate->sceneStatus = 2;
-			// drawNewScene(gamestate);
-			Wait(800000);
-		}
-		else if (i == 5)
-		{
-			drawImage(xStart, yStart, 576, 1056, pix, restartPtr);
-			quit = 0;
-			restart = 1;
-		}
-		else if (i == 6)
-		{
-			drawImage(xStart, yStart, 576, 1056, pix, quitgamePtr);
-			quit = 1;
-			restart = 0;
-		}
-		else if (i == 9)
-		{
-			if (restart == 1)
-			{
-				gamestate->scene = 1;
-				gamestate->sceneStatus = 0;
-				gamestate->score = 0;
-				paused = 0;
-			}
-			else if (quit == 1)
-			{
-				paused = 0;
-				gamestate->scene = 0;
-				gamestate->winCond = 0;
-				gamestate->sceneStatus = 0;
-			}
+			gs->mario->coinGotten = j;
+			return;
+
 		}
 	}
-	free(pix);
-	free(blk);
 }
+
 void determineValuePackEffect(Mario *mario, GameState *gs)
 {
 	Pixel *pixel = malloc(sizeof(Pixel));
@@ -894,6 +836,33 @@ void testForCollisions(Mario *mario,
 		(gs->itemSpots + packPos)->isVisible = 0;
 		mario->didHitPack = 0;
 		mario->packCollidedWith = -1;
+	}
+	else if (mario->didGetCoin)
+	{
+		int coinGot = mario->coinGotten;
+		int colour = getColour(gs->bg[*yD / gridSize][*xD / gridSize]);
+		int drawSize = gs->coins->drawSize;
+
+		drawBlock(drawSize, drawSize, *xD, *yD, colour, pixel);
+		drawSprite(*xD, *yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_front, -31505);
+
+		if (gs->scene == 1)
+			gs->score += 5;
+
+		else if (gs->scene == 2)
+			gs->score += 10;
+
+		else if (gs->scene == 3)
+			gs->score += 15;
+
+		else if (gs->scene == 4)
+			gs->score += 20;
+
+		drawScoreDisplay(gamestate, pixel);
+
+		(gs->coinSpots + coinGot)->isVisible = 0;
+		mario->didGetCoin = 0;
+		mario->coinGotten = -1;
 	}
 	else // check goal
 	{
@@ -1086,6 +1055,81 @@ void screenMenu(int *game)
 	}
 }
 
+void drawPauseMenu(GameState *gamestate, int *x, int *y, Mario *m, int *status)
+{
+	Pixel *pix = malloc(sizeof(Pixel));
+	Pixel *blk = malloc(sizeof(Pixel));
+	int paused = 1;
+	int numOfButtons = 16; // number of buttons on snes
+	int i;
+	int restart = 0;
+	int quit = 0;
+	int xStart = 420;
+	int yStart = 250;
+
+	short int *pausemenuPtr = (short int *)pause_M.pixel_data;
+	short int *restartPtr = (short int *)pause_R.pixel_data;
+	short int *quitgamePtr = (short int *)pause_Q.pixel_data;
+
+	drawImage(xStart, yStart, 576, 1056, pix, pausemenuPtr);
+	while (paused)
+	{
+		int pressed = 0;
+		while (!pressed)
+		{
+			Read_SNES();
+			for (i = 1; i <= numOfButtons; i++)
+			{
+				if ((i >= 4 || i <= 8) && *(globalButtons + i) == 0)
+				{
+					pressed = 1;
+					break; // break out of the for loop
+				}
+			}
+		}
+		if (i == 4)
+		{
+			(*x) = m->xPos;
+			(*y) = m->yPos;
+			paused = 0;
+			*status = 1;
+			gamestate->sceneStatus = 2;
+			// drawNewScene(gamestate);
+			Wait(800000);
+		}
+		else if (i == 5)
+		{
+			drawImage(xStart, yStart, 576, 1056, pix, restartPtr);
+			quit = 0;
+			restart = 1;
+		}
+		else if (i == 6)
+		{
+			drawImage(xStart, yStart, 576, 1056, pix, quitgamePtr);
+			quit = 1;
+			restart = 0;
+		}
+		else if (i == 9)
+		{
+			if (restart == 1)
+			{
+				gamestate->scene = 1;
+				gamestate->sceneStatus = 0;
+				gamestate->score = 0;
+				paused = 0;
+			}
+			else if (quit == 1)
+			{
+				paused = 0;
+				gamestate->scene = 0;
+				gamestate->sceneStatus = 0;
+			}
+		}
+	}
+	free(pix);
+	free(blk);
+}
+
 void drawNewScene(GameState *gamestate)
 {
 	Alphabet *alp = malloc(sizeof(Alphabet));
@@ -1207,6 +1251,7 @@ void determineStage()
 		{
 			stageNavigation(gamestate, pixel, block);
 			winloseCondCheck(gamestate, pixel);
+
 		}
 		else if (gamestate->scene == 2)
 		{

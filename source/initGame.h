@@ -79,6 +79,7 @@ typedef struct
     int xPrev, yPrev;
     int gotHit, canGetHit;
     int didHitPack, packCollidedWith;
+    int didGetCoin, coinGotten;
 
 } Mario;
 
