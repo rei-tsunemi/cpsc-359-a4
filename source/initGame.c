@@ -176,7 +176,7 @@ void freeGameStateObjects(GameState *gamestate)
 void initGameState(GameState *gamestate)
 {
     int maxBugs = 15;
-    int maxItemBlocks = 25;
+    int maxItemBlocks = 30;
     int maxCoins = 30;
     int maxTrees = 150;
 
@@ -263,12 +263,14 @@ void initScene1(GameState *gamestate)
     changeItemAtPos(5, xPos, yPos + (11 * gridSize), gamestate->itemSpots);
 
     int numOfTreesUsed = 0;
+
     // 15 trees
     int stop = 15;
     numOfTreesUsed += stop;
     int currentTree = 0;
     xPos = 480;
     yPos = 64;
+    
 
     makeLineOfTrees(xPos, yPos, &currentTree, &numOfTreesUsed, stop, 1, gamestate);
 
@@ -311,6 +313,7 @@ void initScene1(GameState *gamestate)
             (*gamestate).bg[i][j] = bg1[i][j];
         }
     }
+    
 }
 
 void initScene2(GameState *gamestate)
@@ -350,24 +353,27 @@ void initScene2(GameState *gamestate)
     changeItemAtPos(4, xPos - (36 * gridSize), yPos + gridSize, gamestate->itemSpots);
     changeItemAtPos(5, xPos + (7 * gridSize), yPos + (11 * gridSize), gamestate->itemSpots);
 
-    gamestate->spritesForScene->trees = 5;
+    gamestate->spritesForScene->trees = 7;
     yPos = 576 - 64;
     xPos = 672 - (7 * gridSize);
 
-    changeTreePos(0, xPos - (gridSize * 1), yPos, gamestate->treeSpots);
-    changeTreePos(1, xPos, yPos + (gridSize * 2), gamestate->treeSpots);
+    changeTreePos(0, xPos - (gridSize*2), yPos - (gridSize * 5), gamestate->treeSpots);
+    changeTreePos(1, xPos - (gridSize * 1), yPos, gamestate->treeSpots);
+    changeTreePos(2, xPos, yPos + (gridSize * 2), gamestate->treeSpots);
+    changeTreePos(3, xPos - (gridSize * 3), yPos + (gridSize * 4), gamestate->treeSpots);
     xPos = 1216 - 32;
     yPos = 160;
-    changeTreePos(2, xPos, yPos + (gridSize * 2), gamestate->treeSpots);
-    changeTreePos(3, xPos, yPos + (gridSize * 11), gamestate->treeSpots);
-    changeTreePos(4, xPos, yPos + (gridSize * 20), gamestate->treeSpots);
+    changeTreePos(4, xPos, yPos + (gridSize * 2), gamestate->treeSpots);
+    changeTreePos(5, xPos, yPos + (gridSize * 11), gamestate->treeSpots);
+    changeTreePos(6, xPos, yPos + (gridSize * 20), gamestate->treeSpots);
 
-    gamestate->spritesForScene->bugs = 5;
+    gamestate->spritesForScene->bugs = 6;
     changeBugsAtPos(0, 320, 320, 0, 10, -1, 1, gamestate->bugSpots); // stays
     changeBugsAtPos(1, 480, 544, 0, 10, 1, 1, gamestate->bugSpots);  // stays
     changeBugsAtPos(2, 1216, 160, 0, 25, 1, 2, gamestate->bugSpots); // stays
-    changeBugsAtPos(3, 1280, 864, 0, 10, 1, 1, gamestate->bugSpots);
+    changeBugsAtPos(3, 1280, 864, 0, 15, 1, 1, gamestate->bugSpots);
     changeBugsAtPos(4, 1344, 480, 0, 25, -1, 1, gamestate->bugSpots);
+    changeBugsAtPos(5, 1312, 288, 0, 15, 1, 1, gamestate->bugSpots);
 
     // gamestate->spritesForScene->items = 6;
 
@@ -392,6 +398,85 @@ void initScene3(GameState *gamestate)
     gamestate->timeLeft += 60;
     gamestate->sceneStatus = 1;
     gamestate->scene = 3;
+
+    gamestate->spritesForScene->bugs = 8;
+    changeBugsAtPos(0, 384, 928, 0, 42, 1, 1, gamestate->bugSpots); // stays
+    changeBugsAtPos(1, 1728, 960, 0, 35, -1, 1, gamestate->bugSpots);  // stays
+    changeBugsAtPos(2, 1824, 992, 0, 14, -1, 2, gamestate->bugSpots); // stays
+    changeBugsAtPos(3, 1632, 704, 0, 13, -1, 2, gamestate->bugSpots);
+    changeBugsAtPos(4, 1536, 736, 0, 35, -1, 1, gamestate->bugSpots);
+    changeBugsAtPos(5, 256, 384, 0, 37, 1, 1, gamestate->bugSpots);
+    changeBugsAtPos(6, 1312, 608, 0, 5, -1, 1, gamestate->bugSpots);
+    changeBugsAtPos(7, 192, 96, 0, 30, 1, 2, gamestate->bugSpots);
+
+    gamestate->spritesForScene->trees = 30;
+    int numOfTreesUsed = 0;
+    int currentTree = 0;
+    // 3 trees
+    int stop = 3;
+    numOfTreesUsed += stop;
+    // top line
+    int xPos = 736;
+    int yPos = 896;
+    makeLineOfTrees(xPos, yPos, &currentTree, &numOfTreesUsed, stop, 0, gamestate);
+    xPos = 928;
+    makeLineOfTrees(xPos, yPos, &currentTree, &numOfTreesUsed, stop, 0, gamestate);
+    xPos = 1120;
+    makeLineOfTrees(xPos, yPos, &currentTree, &numOfTreesUsed, stop, 0, gamestate);
+    xPos = 1312;
+    makeLineOfTrees(xPos, yPos, &currentTree, &numOfTreesUsed, stop, 0, gamestate);
+    xPos = 1504;
+    makeLineOfTrees(xPos, yPos, &currentTree, &numOfTreesUsed, stop, 0, gamestate);
+    xPos = 1696;
+    makeLineOfTrees(xPos, yPos, &currentTree, &numOfTreesUsed, stop, 0, gamestate);
+    
+    // bottom line
+    xPos = 864;
+    yPos = 992;
+    makeLineOfTrees(xPos, yPos, &currentTree, &numOfTreesUsed, stop, 0, gamestate);
+    xPos = 1120;
+    makeLineOfTrees(xPos, yPos, &currentTree, &numOfTreesUsed, stop, 0, gamestate);
+    xPos = 1376;
+    makeLineOfTrees(xPos, yPos, &currentTree, &numOfTreesUsed, stop, 0, gamestate);
+    xPos = 1632;
+    makeLineOfTrees(xPos, yPos, &currentTree, &numOfTreesUsed, stop, 0, gamestate);
+
+    // last straight line  12 trees
+    // xPos = 416;
+    // yPos = 96;
+    // stop = 2;
+    // makeLineOfTrees(xPos, yPos, &currentTree, &numOfTreesUsed, stop, 0, gamestate);
+    // xPos = 992;
+    // makeLineOfTrees(xPos, yPos, &currentTree, &numOfTreesUsed, stop, 0, gamestate);
+    // yPos = 224;
+    // makeLineOfTrees(xPos, yPos, &currentTree, &numOfTreesUsed, stop, 0, gamestate);
+    // xPos = 512;
+    // makeLineOfTrees(xPos, yPos, &currentTree, &numOfTreesUsed, stop, 0, gamestate);
+    // xPos = 768;
+    // yPos = 128;
+    // makeLineOfTrees(xPos, yPos, &currentTree, &numOfTreesUsed, stop, 0, gamestate);
+    // yPos = 192;
+    // makeLineOfTrees(xPos+(3*gridSize), yPos, &currentTree, &numOfTreesUsed, stop, 0, gamestate);
+
+    gamestate->spritesForScene->items = 6;
+    changeItemAtPos(0, 384, 832, gamestate->itemSpots);
+    changeItemAtPos(1, 384, 864, gamestate->itemSpots);
+    changeItemAtPos(2, 384, 896, gamestate->itemSpots);
+    changeItemAtPos(3, 1408, 800, gamestate->itemSpots);
+    changeItemAtPos(4, 1824, 256, gamestate->itemSpots);
+    changeItemAtPos(5, 288, 160, gamestate->itemSpots);
+
+    gamestate->spritesForScene->coins = 7; 
+    changeCoinAtPos(0, 1088, 800, gamestate->coinSpots);
+    changeCoinAtPos(1, 1248, 544, gamestate->coinSpots);
+    changeCoinAtPos(2, 1248, 576, gamestate->coinSpots);
+    changeCoinAtPos(3, 1280, 576, gamestate->coinSpots);
+    changeCoinAtPos(4, 1216, 576, gamestate->coinSpots);
+    changeCoinAtPos(5, 640, 576, gamestate->coinSpots);
+    changeCoinAtPos(6, 672, 576, gamestate->coinSpots);
+
+
+
     int i, j;
     for (i = 0; i < Y_DIM; i++)
     {
