@@ -812,6 +812,20 @@ void determineValuePackEffect(Mario *mario, GameState *gs)
 	free(pixel);
 }
 
+void backGroundDeathZones(int *pos, int *flag)
+{
+
+	// these numbers correspond to the colour map positions
+	if (*pos == 4 || *pos == 3 || *pos == 7)
+	{
+		*flag = 1;
+	}
+	else
+	{
+		*flag = 0;
+	}
+}
+
 void testForCollisions(Mario *mario,
 					   int *xD,
 					   int *yD,
@@ -820,7 +834,13 @@ void testForCollisions(Mario *mario,
 					   int *status,
 					   int *press)
 {
-	if (gs->mario->gotHit == 1)
+	int marioFell;
+	int backGroundPos = gs->bg[*yD / gridSize][*xD / gridSize];
+	int colour = getColour(backGroundPos);
+
+	backGroundDeathZones(&backGroundPos, &marioFell);
+
+	if (gs->mario->gotHit == 1 || marioFell)
 	{
 
 		gs->mario->canGetHit = 0;
@@ -829,7 +849,32 @@ void testForCollisions(Mario *mario,
 		gs->lives = l;
 
 		// redraw where mario is atm as background
-		int colour = getColour(gs->bg[*yD / gridSize][*xD / gridSize]);
+		// int colour = getColour(gs->bg[*yD / gridSize][*xD / gridSize]);
+
+		// if (marioFell)
+		// {
+		int i;
+		int fallSpin = 0;
+		for (i = 0; i < 10; i++)
+		{
+			if (fallSpin == 0)
+				drawSprite(*xD, *yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_front, -31505);
+
+			else if (fallSpin == 1)
+				drawSprite(*xD, *yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_left, -31505);
+			else if (fallSpin == 2)
+				drawSprite(*xD, *yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_back, -31505);
+			else
+				drawSprite(*xD, *yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_right, -31505);
+			delayMicroseconds(150000);
+			drawBlock(mario->drawSize, mario->drawSize, *xD, *yD, colour, pixel);
+			if (fallSpin == 3)
+				fallSpin = 0;
+			else
+				fallSpin++;
+		}
+		// }
+
 		drawBlock(mario->drawSize, mario->drawSize, *xD, *yD, colour, pixel);
 
 		*xD = mario->xStart;
@@ -839,10 +884,7 @@ void testForCollisions(Mario *mario,
 		gs->mario->xPrev = *xD;
 		gs->mario->yPrev = *yD;
 
-		if (gs->scene == 1)
-			drawSprite(*xD, *yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_front, -31505);
-		else if (gs->scene == 2)
-			drawSprite(*xD, *yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_right, -31505);
+		drawSprite(*xD, *yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_front, -31505);
 
 		gs->mario->moveSpeed = baseSpeed;
 		gs->mario->speedBonus = 0;
@@ -856,7 +898,7 @@ void testForCollisions(Mario *mario,
 	{
 
 		int packPos = mario->packCollidedWith;
-		int colour = getColour(gs->bg[*yD / gridSize][*xD / gridSize]);
+		// int colour = getColour(gs->bg[*yD / gridSize][*xD / gridSize]);
 
 		int drawSize = gs->itemblocks->drawSize;
 		drawBlock(drawSize, drawSize, *xD, *yD, colour, pixel);
@@ -871,7 +913,7 @@ void testForCollisions(Mario *mario,
 	else if (mario->didGetCoin)
 	{
 		int coinGot = mario->coinGotten;
-		int colour = getColour(gs->bg[*yD / gridSize][*xD / gridSize]);
+		// int colour = getColour(gs->bg[*yD / gridSize][*xD / gridSize]);
 		int drawSize = gs->coins->drawSize;
 
 		drawBlock(drawSize, drawSize, *xD, *yD, colour, pixel);
@@ -1073,6 +1115,7 @@ void drawWinLose(GameState *gs, Alphabet *alp)
 
 		drawImage(0, 64, 1016, 1920, pixel, screens->winScreen);
 		drawHeader(alp);
+		sleep(2);
 
 		pressAnyButton();
 	}
@@ -1081,6 +1124,7 @@ void drawWinLose(GameState *gs, Alphabet *alp)
 
 		drawImage(0, 64, 1016, 1920, pixel, screens->loseScreen);
 		drawHeader(alp);
+		sleep(2);
 		pressAnyButton();
 	}
 	free(pixel);
