@@ -165,6 +165,16 @@ typedef struct
     int trees;
 } SpriteCount;
 
+typedef struct
+{
+    short int *winScreen;
+    short int *loseScreen;
+    short int *titleMain;
+    short int *titleStart;
+    short int *titleQuit;
+
+} Screens;
+
 static int Y_DIM = 33; // 33
 static int X_DIM = 60; // 60
 
@@ -246,3 +256,5 @@ void initTrees(Tree *tree);
 void changeTreePos(int i, int x, int y, TreePositions *trees);
 
 void makeLineOfTrees(int x, int y, int *curr, int *used, int stop, int d, GameState *gs);
+
+void initScreens(Screens *screen);

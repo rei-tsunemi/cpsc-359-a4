@@ -3,6 +3,11 @@
 #include "backgrounds.h"
 #include "alphabet.h"
 #include "numeric.h"
+#include "winScreen.h"
+#include "loseScreen.h"
+#include "title.h"
+#include "titleStart.h"
+#include "titlequit.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -470,4 +475,13 @@ void initDigitsToDraw(DigitsToDraw *dtd)
     dtd->scoreDraw->gridSize = 64;
 
     fillDigitArray(dtd->digits);
+}
+
+void initScreens(Screens *screen)
+{
+    screen->winScreen = (short int *)img_win.pixel_data;
+    screen->loseScreen = (short int *)img_lose.pixel_data;
+    screen->titleMain = (short int *)img_title.pixel_data;
+    screen->titleStart = (short int *)img_start.pixel_data;
+    screen->titleQuit = (short int *)img_quit.pixel_data;
 }

@@ -49,8 +49,8 @@
 static unsigned int *gpioPtr; // get global gpio pointer
 static int globalButtons[16]; // to store the input value from the buttons / register sample buttons
 
-GameState *gamestate;		// global gamestate
 DigitsToDraw *digitsToDraw; // global struct pointer to draw digits at their correct positions
+Screens *screens;
 
 // GPIO setup macros.
 #define INP_GPIO(g) *(gpioPtr + ((g) / 10)) &= ~(7 << (((g) % 10) * 3)) // set input
@@ -703,7 +703,7 @@ void calcScenceEndScore(GameState *gs, Pixel *pixel)
 	float currentScore = (float)gs->score;
 	currentScore += (time + (lives * timeBonus)) * scoreMultiplier;
 	gs->score = (int)currentScore;
-	drawScoreDisplay(gamestate, pixel);
+	drawScoreDisplay(gs, pixel);
 }
 
 void didMarioCollideWithAnything(int *xD, int *yD, GameState *gs)
@@ -879,7 +879,7 @@ void testForCollisions(Mario *mario,
 		else if (gs->scene == 4)
 			gs->score += 20;
 
-		drawScoreDisplay(gamestate, pixel);
+		drawScoreDisplay(gs, pixel);
 
 		(gs->coinSpots + coinGot)->isVisible = 0;
 		mario->didGetCoin = 0;
@@ -894,8 +894,8 @@ void testForCollisions(Mario *mario,
 
 		{
 			*status = 0;
-			gamestate->winCond = 1;
-			gamestate->sceneStatus = 0;
+			gs->winCond = 1;
+			gs->sceneStatus = 0;
 			Wait(100000);
 			// gamestate->scene++;
 		}
@@ -1034,13 +1034,27 @@ void drawGameState(Pixel *pixel,
 	pthread_join(itemThread, NULL);
 }
 
-void screenMenu(int *game)
+void drawWinLose(GameState *gs)
+{
+	Pixel *pixel = malloc(sizeof(Pixel));
+	if (gs->scene == 5)
+	{
+		// drawImage(96, 60, 960, 1728, pix, screens->titleMain);
+	}
+	else
+	{
+		drawImage(0, 64, 1080, 1920, pixel, screens->loseScreen);
+	}
+	free(pixel);
+}
+
+void screenMenu(int *game, GameState *gamestate)
 {
 	Pixel *pix;
 	pix = malloc(sizeof(Pixel));
-	short int *menuPtr = (short int *)img_title.pixel_data;
-	short int *startPtr = (short int *)img_start.pixel_data;
-	short int *quitPtr = (short int *)img_quit.pixel_data;
+	// short int *menuPtr = (short int *)img_title.pixel_data;
+	// short int *startPtr = (short int *)img_start.pixel_data;
+	// short int *quitPtr = (short int *)img_quit.pixel_data;
 
 	int numOfButtons = 16; // number of buttons on snes
 	int i;
@@ -1048,7 +1062,7 @@ void screenMenu(int *game)
 	int start = 0;
 	int quit = 0;
 
-	drawImage(96, 60, 960, 1728, pix, menuPtr);
+	drawImage(96, 60, 960, 1728, pix, screens->titleMain);
 
 	while (status)
 	{
@@ -1075,13 +1089,13 @@ void screenMenu(int *game)
 		}
 		else if (i == 5)
 		{
-			drawImage(96, 60, 960, 1728, pix, startPtr);
+			drawImage(96, 60, 960, 1728, pix, screens->titleStart);
 			start = 1;
 			quit = 0;
 		}
 		else if (i == 6)
 		{
-			drawImage(96, 60, 960, 1728, pix, quitPtr);
+			drawImage(96, 60, 960, 1728, pix, screens->titleQuit);
 			quit = 1;
 			start = 0;
 		}
@@ -1298,13 +1312,16 @@ void winloseCondCheck(GameState *gamestate, Pixel *pixel)
 
 void determineStage()
 {
+	GameState *gamestate; // global gamestate
 	gamestate = malloc(sizeof(GameState));
 	digitsToDraw = malloc(sizeof(DigitsToDraw));
+	screens = malloc(sizeof(Screens));
 
 	gamestate->scene = 0;
 
 	initDigitsToDraw(digitsToDraw);
 	initGameState(gamestate);
+	initScreens(screens);
 
 	// loop to determine background colour for the sprites
 	// short int * cfront = gamestate->itemblocks->valPtr_F;
@@ -1327,7 +1344,7 @@ void determineStage()
 	{
 		if (gamestate->scene == 0)
 		{
-			screenMenu(&gameOn);
+			screenMenu(&gameOn, gamestate);
 			initScene1(gamestate);
 		}
 		else if (gamestate->scene == 1)
@@ -1352,11 +1369,13 @@ void determineStage()
 		}
 		else if (gamestate->scene == 5) // player has won
 		{
+			drawWinLose(gamestate);
 			gamestate->scene = 0;
 		}
 		else if (gamestate->scene == 7)
 		{
 			// sleep(1);
+			drawWinLose(gamestate);
 			gamestate->scene = 0;
 		}
 	}
@@ -1370,6 +1389,7 @@ void determineStage()
 
 	free(gamestate);
 	free(digitsToDraw);
+	free(screens);
 }
 
 int main()
