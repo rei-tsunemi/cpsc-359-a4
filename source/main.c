@@ -1060,12 +1060,12 @@ void drawWinLose(GameState *gs)
 	Pixel *pixel = malloc(sizeof(Pixel));
 	if (gs->scene == 5)
 	{
-		drawImage(0, 64, 960, 1728, pixel, screens->winScreen);
+		drawImage(0, 64, 1016, 1920, pixel, screens->winScreen);
 		pressAnyButton();
 	}
 	else
 	{
-		drawImage(0, 64, 720, 1280, pixel, screens->loseScreen);
+		drawImage(0, 64, 1016, 1920, pixel, screens->loseScreen);
 		pressAnyButton();
 	}
 	free(pixel);
