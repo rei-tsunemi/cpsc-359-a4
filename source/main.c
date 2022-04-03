@@ -373,6 +373,27 @@ void drawHeader(Alphabet *word)
 	free(pix);
 }
 
+void clearScreen()
+{
+	Pixel *pixel = malloc(sizeof(Pixel));
+	int x = X_DIM;
+	int y = Y_DIM;
+	int size = gridSize;
+	int i, j, xPos, yPos;
+	int colour = 0x0000;
+	for (i = 0; i < y; i++)
+	{
+		for (j = 0; j < x; j++)
+		{
+			xPos = size * j;
+			yPos = size * i;
+
+			drawBlock(size, size, xPos, yPos, colour, pixel);
+		}
+	}
+	free(pixel);
+}
+
 void repaint(int i, int xD, int yD, Pixel *pixel, int bg[Y_DIM][X_DIM])
 {
 	// int gridDim = 32;
@@ -1055,17 +1076,22 @@ void pressAnyButton()
 		}
 	}
 }
-void drawWinLose(GameState *gs)
+void drawWinLose(GameState *gs, Alphabet *alp)
 {
 	Pixel *pixel = malloc(sizeof(Pixel));
 	if (gs->scene == 5)
 	{
+
 		drawImage(0, 64, 1016, 1920, pixel, screens->winScreen);
+		drawHeader(alp);
+
 		pressAnyButton();
 	}
 	else
 	{
+
 		drawImage(0, 64, 1016, 1920, pixel, screens->loseScreen);
+		drawHeader(alp);
 		pressAnyButton();
 	}
 	free(pixel);
@@ -1129,7 +1155,8 @@ void screenMenu(int *game, GameState *gamestate)
 			}
 			else if (quit == 1)
 			{
-				drawBlock(1920, 1056, 0, 0, 0x0000, pix);
+				// drawBlock(1920, 1056, 0, 0, 0x0000, pix);
+				clearScreen();
 				(*game) = 0;
 				status = 0;
 			}
@@ -1214,11 +1241,11 @@ void drawPauseMenu(GameState *gamestate, int *x, int *y, Mario *m, int *status)
 	free(blk);
 }
 
-void drawNewScene(GameState *gamestate)
+void drawNewScene(GameState *gamestate, Alphabet *alp)
 {
-	Alphabet *alp = malloc(sizeof(Alphabet));
+
 	Pixel *pixel = malloc(sizeof(Pixel));
-	initAlphabet(alp);
+
 	int xSize = X_DIM;
 	int ySize = Y_DIM;
 	int x;
@@ -1268,10 +1295,9 @@ void drawNewScene(GameState *gamestate)
 	}
 
 	free(pixel);
-	free(alp);
 }
 
-void stageNavigation(GameState *gamestate, Pixel *pixel, Pixel *block)
+void stageNavigation(GameState *gamestate, Pixel *pixel, Pixel *block, Alphabet *alp)
 {
 	if (gamestate->sceneStatus == 0) // restart
 	{
@@ -1284,13 +1310,13 @@ void stageNavigation(GameState *gamestate, Pixel *pixel, Pixel *block)
 		else if (gamestate->scene == 4)
 			initScene4(gamestate);
 
-		drawNewScene(gamestate);
+		drawNewScene(gamestate, alp);
 		drawGameState(pixel, gamestate, block, gamestate->bg);
 	}
 	else // unpause
 	{
 		gamestate->sceneStatus = 1;
-		drawNewScene(gamestate);
+		drawNewScene(gamestate, alp);
 		drawGameState(pixel, gamestate, block, gamestate->bg);
 	}
 }
@@ -1333,12 +1359,15 @@ void winloseCondCheck(GameState *gamestate, Pixel *pixel)
 void determineStage()
 {
 	GameState *gamestate; // global gamestate
+	Alphabet *alp = malloc(sizeof(Alphabet));
+
 	gamestate = malloc(sizeof(GameState));
 	digitsToDraw = malloc(sizeof(DigitsToDraw));
 	screens = malloc(sizeof(Screens));
 
 	gamestate->scene = 0;
 
+	initAlphabet(alp);
 	initDigitsToDraw(digitsToDraw);
 	initGameState(gamestate);
 	initScreens(screens);
@@ -1358,7 +1387,8 @@ void determineStage()
 
 	pixel = malloc(sizeof(Pixel));
 	block = malloc(sizeof(Pixel));
-	memset(framebufferstruct.fptr, 0, 1);
+	// memset(framebufferstruct.fptr, 0, 1);
+	clearScreen();
 
 	while (gameOn)
 	{
@@ -1369,33 +1399,33 @@ void determineStage()
 		}
 		else if (gamestate->scene == 1)
 		{
-			stageNavigation(gamestate, pixel, block);
+			stageNavigation(gamestate, pixel, block, alp);
 			winloseCondCheck(gamestate, pixel);
 		}
 		else if (gamestate->scene == 2)
 		{
-			stageNavigation(gamestate, pixel, block);
+			stageNavigation(gamestate, pixel, block, alp);
 			winloseCondCheck(gamestate, pixel);
 		}
 		else if (gamestate->scene == 3)
 		{
-			stageNavigation(gamestate, pixel, block);
+			stageNavigation(gamestate, pixel, block, alp);
 			winloseCondCheck(gamestate, pixel);
 		}
 		else if (gamestate->scene == 4)
 		{
-			stageNavigation(gamestate, pixel, block);
+			stageNavigation(gamestate, pixel, block, alp);
 			winloseCondCheck(gamestate, pixel);
 		}
 		else if (gamestate->scene == 5) // player has won
 		{
-			drawWinLose(gamestate);
+			drawWinLose(gamestate, alp);
 			gamestate->scene = 0;
 		}
 		else if (gamestate->scene == 7)
 		{
 			// sleep(1);
-			drawWinLose(gamestate);
+			drawWinLose(gamestate, alp);
 			gamestate->scene = 0;
 		}
 	}
@@ -1407,6 +1437,7 @@ void determineStage()
 	freeGameStateObjects(gamestate);
 	freeDigitsToDrawObjects(digitsToDraw);
 
+	free(alp);
 	free(gamestate);
 	free(digitsToDraw);
 	free(screens);
