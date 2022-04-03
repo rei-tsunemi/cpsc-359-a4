@@ -122,6 +122,19 @@ void changeBugsAtPos(int i,
     (bugspot + i)->moveDirection = moveD;
 }
 
+void makeLineOfTrees(int x, int y, int *curr, int *used, int stop, int d, GameState *gs)
+{
+    *used += stop;
+    for (int i = 0; i < stop; i++)
+    {
+        if (d == 1)
+            changeTreePos(*curr, x, y + (gridSize * i), gs->treeSpots);
+        else
+            changeTreePos(*curr, x + (gridSize * i), y, gs->treeSpots);
+        (*curr)++;
+    }
+}
+
 void freeGameStateObjects(GameState *gamestate)
 {
     // free everything in the gamestate object
@@ -236,68 +249,71 @@ void initScene1(GameState *gamestate)
 
     int numOfTreesUsed = 0;
     // 15 trees
-    int stop = 15;
-    numOfTreesUsed += stop;
-    int currentTree = 0;
-    xPos = 480;
-    yPos = 64;
-    for (i = 0; i < stop; i++)
-    {
-        changeTreePos(currentTree, xPos, yPos + (gridSize * i), gamestate->treeSpots);
-        currentTree++;
-    }
+    // int stop = 15;
+    // numOfTreesUsed += stop;
+    // int currentTree = 0;
+    // xPos = 480;
+    // yPos = 64;
 
-    // 10 trees
-    yPos = 320;
-    xPos = 896;
-    stop = 10;
-    numOfTreesUsed += stop;
-    for (i = 0; i < stop; i++)
-    {
-        changeTreePos(currentTree, xPos + (gridSize * i), yPos, gamestate->treeSpots);
-        currentTree++;
-    }
+    // // makeLineOfTrees(xPos, yPos, &currentTree, &numOfTreesUsed, stop, 1, gamestate);
+    // for (i = 0; i < stop; i++)
+    // {
+    //     changeTreePos(currentTree, xPos, yPos + (gridSize * i), gamestate->treeSpots);
+    //     currentTree++;
+    // }
 
-    // 22 trees
-    yPos += gridSize;
-    stop = 22;
-    numOfTreesUsed += stop;
-    for (i = 0; i < stop; i++)
-    {
-        changeTreePos(currentTree, xPos, yPos + (gridSize * i), gamestate->treeSpots);
-        currentTree++;
-    }
+    // // 10 trees
+    // yPos = 320;
+    // xPos = 896;
+    // stop = 10;
+    // // makeLineOfTrees(xPos, yPos, &currentTree, &numOfTreesUsed, stop, 0, gamestate);
+    // numOfTreesUsed += stop;
+    // for (i = 0; i < stop; i++)
+    // {
+    //     changeTreePos(currentTree, xPos + (gridSize * i), yPos, gamestate->treeSpots);
+    //     currentTree++;
+    // }
 
-    // 15 trees
-    yPos = 320;
-    xPos = 1248;
-    stop = 15;
-    numOfTreesUsed += stop;
-    for (i = 0; i < stop; i++)
-    {
-        changeTreePos(currentTree, xPos + (gridSize * i), yPos, gamestate->treeSpots);
-        currentTree++;
-    }
+    // // 22 trees
+    // yPos += gridSize;
+    // stop = 22;
+    // numOfTreesUsed += stop;
+    // for (i = 0; i < stop; i++)
+    // {
+    //     changeTreePos(currentTree, xPos, yPos + (gridSize * i), gamestate->treeSpots);
+    //     currentTree++;
+    // }
 
-    // 21
-    yPos = 672;
-    xPos = 1248;
-    stop = 21;
-    numOfTreesUsed += stop;
-    for (i = 0; i < stop; i++)
-    {
-        changeTreePos(currentTree, xPos + (gridSize * i), yPos, gamestate->treeSpots);
-        currentTree++;
-    }
-    yPos = 800;
-    xPos = 1248;
-    stop = 21;
-    numOfTreesUsed += stop;
-    for (i = 0; i < stop; i++)
-    {
-        changeTreePos(currentTree, xPos + (gridSize * i), yPos, gamestate->treeSpots);
-        currentTree++;
-    }
+    // // 15 trees
+    // yPos = 320;
+    // xPos = 1248;
+    // stop = 15;
+    // numOfTreesUsed += stop;
+    // for (i = 0; i < stop; i++)
+    // {
+    //     changeTreePos(currentTree, xPos + (gridSize * i), yPos, gamestate->treeSpots);
+    //     currentTree++;
+    // }
+
+    // // 21
+    // yPos = 672;
+    // xPos = 1248;
+    // stop = 21;
+    // numOfTreesUsed += stop;
+    // for (i = 0; i < stop; i++)
+    // {
+    //     changeTreePos(currentTree, xPos + (gridSize * i), yPos, gamestate->treeSpots);
+    //     currentTree++;
+    // }
+    // yPos = 800;
+    // xPos = 1248;
+    // stop = 21;
+    // numOfTreesUsed += stop;
+    // for (i = 0; i < stop; i++)
+    // {
+    //     changeTreePos(currentTree, xPos + (gridSize * i), yPos, gamestate->treeSpots);
+    //     currentTree++;
+    // }
 
     gamestate->spritesForScene->trees = numOfTreesUsed;
 
@@ -316,7 +332,7 @@ void initScene2(GameState *gamestate)
     // copy background 2 into the gamestate
     gamestate->timeLeft += 30;
     gamestate->sceneStatus = 1;
-    // gamestate->scene = 1;
+    gamestate->scene = 2;
     gamestate->loseCond = 0;
     changeMarioPosScene(gamestate->mario, 32, 736);
     int i, j;
@@ -332,8 +348,11 @@ void initScene2(GameState *gamestate)
 void initScene3(GameState *gamestate)
 {
     // copy background 2 into the gamestate
+    changeMarioPosScene(gamestate->mario, 32, 96);
     gamestate->loseCond = 0;
     gamestate->timeLeft += 60;
+    gamestate->sceneStatus = 1;
+    gamestate->scene = 3;
     int i, j;
     for (i = 0; i < Y_DIM; i++)
     {
@@ -349,6 +368,9 @@ void initScene4(GameState *gamestate)
     // copy background 2 into the
     gamestate->loseCond = 0;
     gamestate->timeLeft += 75;
+    gamestate->sceneStatus = 1;
+    gamestate->scene = 4;
+    changeMarioPosScene(gamestate->mario, 32, 736);
     int i, j;
     for (i = 0; i < Y_DIM; i++)
     {

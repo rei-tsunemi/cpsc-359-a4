@@ -176,7 +176,9 @@ int getColour(int num)
 		return 0x24c4; // light green
 	else if (num == 6)
 		return 0xCEE2; // creamy yellow
-	else			   // num is 2
+	else if (num == 7)
+		return 0x0000; // black
+	else
 		return 0x0000; // black
 }
 
@@ -198,21 +200,21 @@ void checkCollision(int *x, int *y, int *xToCheck, int *yToCheck, int *flag)
 void getCartSpeed(int *speed, int *x, int *y, int bg[Y_DIM][X_DIM], int *speedBonus)
 {
 
-	// *speed = baseSpeed;
-	int colourPos = bg[*y / gridSize][*x / gridSize];
-	if (colourPos != 2)
-	{
-		*speed = baseSpeed * 4;
-		*speedBonus = 0;
-	}
-	else if (*speedBonus)
-	{
-		return;
-	}
-	else
-	{
-		*speed = baseSpeed;
-	}
+	*speed = baseSpeed;
+	// int colourPos = bg[*y / gridSize][*x / gridSize];
+	// if (colourPos != 2)
+	// {
+	// 	*speed = baseSpeed * 4;
+	// 	*speedBonus = 0;
+	// }
+	// else if (*speedBonus)
+	// {
+	// 	return;
+	// }
+	// else
+	// {
+	// 	*speed = baseSpeed;
+	// }
 }
 
 void determineButtonPressed(int i, int *x, int *y, GameState *gs)
@@ -767,8 +769,8 @@ void determineValuePackEffect(Mario *mario, GameState *gs)
 {
 	Pixel *pixel = malloc(sizeof(Pixel));
 	int packChoices = 5;
-	int rng = rand() % packChoices;
-	printf("pack value is %d\n", rng);
+	// int rng = rand() % packChoices;
+	int rng = 0;
 	if (rng == 0)
 	{
 		gs->score += 15;
@@ -1046,7 +1048,7 @@ void screenMenu(int *game)
 	int start = 0;
 	int quit = 0;
 
-	drawImage(0, 0, 1024, 1920, pix, menuPtr);
+	drawImage(96, 60, 960, 1728, pix, menuPtr);
 
 	while (status)
 	{
@@ -1073,13 +1075,13 @@ void screenMenu(int *game)
 		}
 		else if (i == 5)
 		{
-			drawImage(0, 0, 1024, 1920, pix, startPtr);
+			drawImage(96, 60, 960, 1728, pix, startPtr);
 			start = 1;
 			quit = 0;
 		}
 		else if (i == 6)
 		{
-			drawImage(0, 0, 1024, 1920, pix, quitPtr);
+			drawImage(96, 60, 960, 1728, pix, quitPtr);
 			quit = 1;
 			start = 0;
 		}
@@ -1347,6 +1349,10 @@ void determineStage()
 		{
 			stageNavigation(gamestate, pixel, block);
 			winloseCondCheck(gamestate, pixel);
+		}
+		else if (gamestate->scene == 5) // player has won
+		{
+			gamestate->scene = 0;
 		}
 		else if (gamestate->scene == 7)
 		{

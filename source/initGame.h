@@ -244,3 +244,5 @@ void changeMarioPosScene(Mario *mario, int x, int y);
 
 void initTrees(Tree *tree);
 void changeTreePos(int i, int x, int y, TreePositions *trees);
+
+void makeLineOfTrees(int x, int y, int *curr, int *used, int stop, int d, GameState *gs);
