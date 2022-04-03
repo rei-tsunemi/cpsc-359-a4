@@ -1038,7 +1038,7 @@ void screenMenu(int *game)
 	int start = 0;
 	int quit = 0;
 
-	drawImage(0, 0, 1024, 1920, pix, menuPtr);
+	drawImage(96, 60, 960, 1728, pix, menuPtr);
 
 	while (status)
 	{
@@ -1065,13 +1065,13 @@ void screenMenu(int *game)
 		}
 		else if (i == 5)
 		{
-			drawImage(0, 0, 1024, 1920, pix, startPtr);
+			drawImage(96, 60, 960, 1728, pix, startPtr);
 			start = 1;
 			quit = 0;
 		}
 		else if (i == 6)
 		{
-			drawImage(0, 0, 1024, 1920, pix, quitPtr);
+			drawImage(96, 60, 960, 1728, pix, quitPtr);
 			quit = 1;
 			start = 0;
 		}
