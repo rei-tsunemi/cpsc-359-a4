@@ -684,12 +684,12 @@ void drawScoreDisplay(GameState *gamestate, Pixel *pixel)
 	}
 }
 
-void drawLevelDisplay(int *scene, Pixel *pixel)
+void drawLevelDisplay(int scene, Pixel *pixel)
 {
 	int grdsz = digitsToDraw->lvlDraw->gridSize;
 	int x = digitsToDraw->lvlDraw->xPos;
 	int y = digitsToDraw->lvlDraw->yPos;
-	drawImage(x, y, grdsz, grdsz, pixel, *(digitsToDraw->digits + *scene));
+	drawImage(x, y, grdsz, grdsz, pixel, *(digitsToDraw->digits + scene));
 }
 
 void calcScenceEndScore(GameState *gs, Pixel *pixel)
@@ -1200,7 +1200,7 @@ void drawNewScene(GameState *gamestate)
 	}
 	drawHeader(alp);
 	drawLivesDisplay(gamestate, pixel);
-	drawLevelDisplay(&(gamestate->scene), pixel);
+	drawLevelDisplay(gamestate->scene, pixel);
 	drawScoreDisplay(gamestate, pixel);
 	drawTime(gamestate, pixel);
 
