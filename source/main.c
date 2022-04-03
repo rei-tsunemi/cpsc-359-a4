@@ -50,6 +50,7 @@ static unsigned int *gpioPtr; // get global gpio pointer
 static int globalButtons[16]; // to store the input value from the buttons / register sample buttons
 
 DigitsToDraw *digitsToDraw; // global struct pointer to draw digits at their correct positions
+BackGroundImages *backGrounds;
 Screens *screens;
 
 // GPIO setup macros.
@@ -180,6 +181,52 @@ int getColour(int num)
 		return 0x0000; // black
 	else
 		return 0x0000; // black
+}
+
+void assignBackGround(short int *tile, short int *image)
+{
+	int i;
+	for (i = 0; i < backgroundSize; i++)
+		*(tile + i) = *(image + i);
+}
+
+void getBackGroundImage(short int *bgTile, int bgPos)
+{
+	int i;
+	if (bgPos == 0)
+	{
+		for (i = 0; i < backgroundSize; i++)
+			*(bgTile + i) = 0xFFFF;
+	}
+	else if (bgPos == 1)
+	{
+		for (i = 0; i < backgroundSize; i++)
+			*(bgTile + i) = 0x0000;
+	}
+	else if (bgPos == 2)
+	{
+		assignBackGround(bgTile, backGrounds->road);
+	}
+	else if (bgPos == 3)
+	{
+		assignBackGround(bgTile, backGrounds->lava);
+	}
+	else if (bgPos == 4)
+	{
+		assignBackGround(bgTile, backGrounds->water);
+	}
+	else if (bgPos == 5)
+	{
+		assignBackGround(bgTile, backGrounds->grass1);
+	}
+	else if (bgPos == 6)
+	{
+		assignBackGround(bgTile, backGrounds->rainbow);
+	}
+	else if (bgPos == 7)
+	{
+		assignBackGround(bgTile, backGrounds->space);
+	}
 }
 
 int getBackGroundColour(GameState *gs, int *x, int *y)
@@ -383,7 +430,7 @@ void clearScreen()
 	free(pixel);
 }
 
-void repaint(int i, int xD, int yD, Pixel *pixel, int bg[Y_DIM][X_DIM])
+void repaint(int i, int xD, int yD, Pixel *pixel, int bg[Y_DIM][X_DIM], short int *tile)
 {
 	// int gridDim = 32;
 	int xPaint = xD;
@@ -406,8 +453,12 @@ void repaint(int i, int xD, int yD, Pixel *pixel, int bg[Y_DIM][X_DIM])
 	{
 		xPaint -= gridSize;
 	}
-	colour = getColour(bg[yPaint / gridSize][xPaint / gridSize]);
-	drawBlock(gridSize, gridSize, xPaint, yPaint, colour, pixel);
+	colour = bg[yPaint / gridSize][xPaint / gridSize];
+	getBackGroundImage(tile, colour);
+	drawImage(xPaint, yPaint, gridSize, gridSize, pixel, tile);
+
+	// colour = getColour(bg[yPaint / gridSize][xPaint / gridSize]);
+	// drawBlock(gridSize, gridSize, xPaint, yPaint, colour, pixel);
 }
 
 void findBugCurrentSpot(int *xD, int *yD, int *xP, int *yP, BugPositions *bugSpot)
@@ -455,8 +506,9 @@ void bugCollision(int *xD, int *yD, GameState *gs)
 }
 
 // void drawBugs(Pixel *pixel, BugSprite *bug, GameState *gs)
-void drawBugs(Pixel *pixel, GameState *gs)
+void drawBugs(Pixel *pixel, GameState *gs, short int *tile)
 {
+
 	int i, colour, currentShift, moveD;
 	int xD, yD, xPrev, yPrev;
 	// int bugsToPrint = numOfSprites->bugs;
@@ -475,8 +527,13 @@ void drawBugs(Pixel *pixel, GameState *gs)
 		currentShift++;
 
 		// repaint where it was first
-		colour = getColour(gs->bg[yPrev / gridSize][xPrev / gridSize]);
-		drawBlock(gridSize, gridSize, xPrev, yPrev, colour, pixel);
+		// colour = getColour(gs->bg[yPrev / gridSize][xPrev / gridSize]);
+
+		colour = gs->bg[yPrev / gridSize][xPrev / gridSize];
+		getBackGroundImage(tile, colour);
+		drawImage(xPrev, yPrev, gridSize, gridSize, pixel, tile);
+
+		// drawBlock(gridSize, gridSize, xPrev, yPrev, colour, pixel);
 		bugCollision(&xD, &yD, gs);
 
 		if (moveD == 1)
@@ -502,18 +559,20 @@ void *drawBugsAtPos(void *param)
 {
 	GameState *gamestate = (GameState *)param;
 	Pixel *pixel = malloc(sizeof(Pixel));
+	short int *tile = malloc(sizeof(short int *) * backgroundSize);
 
 	while (gamestate->sceneStatus)
 	{
 		// drawBugs(pixel, gamestate->bugs, gamestate);
-		drawBugs(pixel, gamestate);
+		drawBugs(pixel, gamestate, tile);
 	}
+	free(tile);
 	free(pixel);
 
 	pthread_exit(0);
 }
 
-void drawValuePack(Pixel *pixel, GameState *gs)
+void drawValuePack(Pixel *pixel, GameState *gs, short int *tile)
 {
 	ItemBlock *itm = gs->itemblocks;
 	int numOfItems = gs->spritesForScene->items;
@@ -528,8 +587,11 @@ void drawValuePack(Pixel *pixel, GameState *gs)
 			xD = (gs->itemSpots + i)->xStart;
 			yD = (gs->itemSpots + i)->yStart;
 			drawFace = (gs->itemSpots + i)->drawFace;
-			bgColour = getBackGroundColour(gs, &xD, &yD);
-			drawBlock(itm->drawSize, itm->drawSize, xD, yD, bgColour, pixel);
+			// bgColour = getBackGroundColour(gs, &xD, &yD);
+			bgColour = gs->bg[yD / gridSize][xD / gridSize];
+			getBackGroundImage(tile, bgColour);
+			drawImage(xD, yD, gridSize, gridSize, pixel, tile);
+			// drawBlock(itm->drawSize, itm->drawSize, xD, yD, bgColour, pixel);
 
 			if (drawFace == 0)
 				drawSprite(xD, yD, itm->drawSize, itm->drawSize, pixel, itm->valPtr_F, -16391);
@@ -550,7 +612,7 @@ void drawValuePack(Pixel *pixel, GameState *gs)
 	Wait(200000);
 }
 
-void drawCoins(Pixel *pixel, GameState *gs)
+void drawCoins(Pixel *pixel, GameState *gs, short int *tile)
 {
 	Coin *cn = gs->coins;
 	int numOfCoins = gs->spritesForScene->coins;
@@ -564,8 +626,12 @@ void drawCoins(Pixel *pixel, GameState *gs)
 			xD = (gs->coinSpots + i)->xStart;
 			yD = (gs->coinSpots + i)->yStart;
 			drawFace = (gs->coinSpots + i)->drawFace;
-			bgColour = getBackGroundColour(gs, &xD, &yD);
-			drawBlock(cn->drawSize, cn->drawSize, xD, yD, bgColour, pixel);
+			bgColour = gs->bg[yD / gridSize][xD / gridSize];
+			getBackGroundImage(tile, bgColour);
+			drawImage(xD, yD, gridSize, gridSize, pixel, tile);
+
+			// bgColour = getBackGroundColour(gs, &xD, &yD);
+			// drawBlock(cn->drawSize, cn->drawSize, xD, yD, bgColour, pixel);
 
 			if (drawFace == 0)
 			{
@@ -598,6 +664,7 @@ void *animateValuePack(void *param)
 {
 	GameState *gamestate = (GameState *)param;
 	Pixel *pix = malloc(sizeof(Pixel));
+	short int *tile = malloc(sizeof(short int *) * backgroundSize);
 
 	// sleep(10); // sleeping ten seconds before they appear
 	// int i;
@@ -609,10 +676,11 @@ void *animateValuePack(void *param)
 
 	while (gamestate->sceneStatus)
 	{
-		drawValuePack(pix, gamestate);
-		drawCoins(pix, gamestate);
+		drawValuePack(pix, gamestate, tile);
+		drawCoins(pix, gamestate, tile);
 	}
 	free(pix);
+	free(tile);
 
 	pthread_exit(0);
 }
@@ -832,13 +900,15 @@ void testForCollisions(Mario *mario,
 					   Pixel *pixel,
 					   GameState *gs,
 					   int *status,
-					   int *press)
+					   int *press,
+					   short int *bgTile)
 {
-	int marioFell;
+	int marioFell = 0;
 	int backGroundPos = gs->bg[*yD / gridSize][*xD / gridSize];
-	int colour = getColour(backGroundPos);
+	int colour = gs->bg[*yD / gridSize][*xD / gridSize];
+	getBackGroundImage(bgTile, colour);
 
-	backGroundDeathZones(&backGroundPos, &marioFell);
+	// backGroundDeathZones(&backGroundPos, &marioFell);
 
 	if (gs->mario->gotHit == 1 || marioFell)
 	{
@@ -867,7 +937,8 @@ void testForCollisions(Mario *mario,
 			else
 				drawSprite(*xD, *yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_right, -31505);
 			delayMicroseconds(150000);
-			drawBlock(mario->drawSize, mario->drawSize, *xD, *yD, colour, pixel);
+			// drawBlock(mario->drawSize, mario->drawSize, *xD, *yD, colour, pixel);
+			drawImage(*xD, *yD, gridSize, gridSize, pixel, bgTile);
 			if (fallSpin == 3)
 				fallSpin = 0;
 			else
@@ -875,7 +946,8 @@ void testForCollisions(Mario *mario,
 		}
 		// }
 
-		drawBlock(mario->drawSize, mario->drawSize, *xD, *yD, colour, pixel);
+		// drawBlock(mario->drawSize, mario->drawSize, *xD, *yD, colour, pixel);
+		drawImage(*xD, *yD, gridSize, gridSize, pixel, bgTile);
 
 		*xD = mario->xStart;
 		*yD = mario->yStart;
@@ -901,7 +973,8 @@ void testForCollisions(Mario *mario,
 		// int colour = getColour(gs->bg[*yD / gridSize][*xD / gridSize]);
 
 		int drawSize = gs->itemblocks->drawSize;
-		drawBlock(drawSize, drawSize, *xD, *yD, colour, pixel);
+		// drawBlock(drawSize, drawSize, *xD, *yD, colour, pixel);
+		drawImage(*xD, *yD, drawSize, drawSize, pixel, bgTile);
 		drawSprite(*xD, *yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_front, -31505);
 
 		determineValuePackEffect(mario, gs);
@@ -916,7 +989,8 @@ void testForCollisions(Mario *mario,
 		// int colour = getColour(gs->bg[*yD / gridSize][*xD / gridSize]);
 		int drawSize = gs->coins->drawSize;
 
-		drawBlock(drawSize, drawSize, *xD, *yD, colour, pixel);
+		// drawBlock(drawSize, drawSize, *xD, *yD, colour, pixel);
+		drawImage(*xD, *yD, drawSize, drawSize, pixel, bgTile);
 		drawSprite(*xD, *yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_front, -31505);
 
 		if (gs->scene == 1)
@@ -974,6 +1048,7 @@ void drawGameState(Pixel *pixel,
 				   int bg[Y_DIM][X_DIM])
 {
 	Mario *mario = gamestate->mario;
+	short int *bgTile = malloc(sizeof(short int) * backgroundSize);
 	int status = 1;		   // game status
 	int numOfButtons = 16; // number of buttons on snes
 	int xD = mario->xPos;  // move in x direction
@@ -1007,7 +1082,7 @@ void drawGameState(Pixel *pixel,
 
 				// test if anything collided while reading input
 				didMarioCollideWithAnything(&xD, &yD, gamestate);
-				testForCollisions(mario, &xD, &yD, pixel, gamestate, &status, &press);
+				testForCollisions(mario, &xD, &yD, pixel, gamestate, &status, &press, bgTile);
 				checkForLoseCond(gamestate, &status);
 
 				if ((i >= 4 || i <= 8) && *(globalButtons + i) == 0)
@@ -1029,7 +1104,7 @@ void drawGameState(Pixel *pixel,
 		}
 		if (!status)
 		{
-			printf("lose cond\n");
+			// printf("lose cond\n");
 			break;
 		}
 
@@ -1051,14 +1126,15 @@ void drawGameState(Pixel *pixel,
 		// delayMicroseconds(speed); // delay to make it seem likes the cart moves slower
 		delayMicroseconds(mario->moveSpeed);
 
-		repaint(press, xD, yD, pixel, gamestate->bg);
-		testForCollisions(mario, &xD, &yD, pixel, gamestate, &status, &press);
+		repaint(press, xD, yD, pixel, gamestate->bg, bgTile);
+		testForCollisions(mario, &xD, &yD, pixel, gamestate, &status, &press, bgTile);
 
 		if (i == 4)
 		{
-			pthread_cancel(bugThread);
-			pthread_cancel(timeT);
-			pthread_cancel(itemThread);
+			// pthread_cancel(bugThread);
+			// pthread_cancel(timeT);
+			// pthread_cancel(itemThread);
+			gamestate->sceneStatus = 0;
 			Wait(800000);
 			drawPauseMenu(gamestate, &xD, &yD, mario, &status);
 			// gamestate->sceneStatus = 2;
@@ -1076,14 +1152,17 @@ void drawGameState(Pixel *pixel,
 	}
 	if (status == 0)
 	{
-		pthread_cancel(bugThread);
-		pthread_cancel(timeT);
-		pthread_cancel(itemThread);
+		gamestate->sceneStatus = 0;
+		// pthread_cancel(bugThread);
+		// pthread_cancel(timeT);
+		// pthread_cancel(itemThread);
 	}
 
 	pthread_join(bugThread, NULL);
 	pthread_join(timeT, NULL);
 	pthread_join(itemThread, NULL);
+
+	free(bgTile);
 }
 
 void pressAnyButton()
@@ -1277,22 +1356,32 @@ void drawNewScene(GameState *gamestate, Alphabet *alp)
 {
 
 	Pixel *pixel = malloc(sizeof(Pixel));
+	short int *tile = malloc(sizeof(short int *) * backgroundSize);
 
 	int xSize = X_DIM;
 	int ySize = Y_DIM;
 	int x;
 
-	int yOff, xOff;
+	int yOff, xOff, bgPos;
+
 	for (int y = 0; y < ySize; y++)
 	{
 		yOff = y * gridSize;
 		for (x = 0; x < xSize; x++)
 		{
 			xOff = x * gridSize;
-			int colour = getColour(gamestate->bg[y][x]);
-			drawBlock(gridSize, gridSize, xOff, yOff, colour, pixel);
+			bgPos = gamestate->bg[y][x];
+
+			getBackGroundImage(tile, bgPos);
+
+			drawImage(xOff, yOff, gridSize, gridSize, pixel, tile);
+
+			// int colour = getColour(gamestate->bg[y][x]);
+			// drawBlock(gridSize, gridSize, xOff, yOff, colour, pixel);
 		}
 	}
+	free(tile);
+
 	drawHeader(alp);
 	drawLivesDisplay(gamestate, pixel);
 	drawLevelDisplay(gamestate->scene, pixel);
@@ -1396,6 +1485,7 @@ void determineStage()
 	gamestate = malloc(sizeof(GameState));
 	digitsToDraw = malloc(sizeof(DigitsToDraw));
 	screens = malloc(sizeof(Screens));
+	backGrounds = malloc(sizeof(BackGroundImages));
 
 	gamestate->scene = 0;
 
@@ -1403,6 +1493,7 @@ void determineStage()
 	initDigitsToDraw(digitsToDraw);
 	initGameState(gamestate);
 	initScreens(screens);
+	initBackgrounds(backGrounds);
 
 	// loop to determine background colour for the sprites
 	// short int * cfront = gamestate->itemblocks->valPtr_F;
@@ -1474,6 +1565,7 @@ void determineStage()
 	free(gamestate);
 	free(digitsToDraw);
 	free(screens);
+	free(backGrounds);
 }
 
 int main()

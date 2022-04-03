@@ -8,6 +8,7 @@
 #include "title.h"
 #include "titleStart.h"
 #include "titlequit.h"
+#include "bgGraphics.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -80,7 +81,8 @@ void initGoalPost(GoalPost *goal)
     goal->colour = 0;
 }
 
-void initGoalPostChanged(GoalPost *goal, int xSize, int ySize, int xPos, int yPos, int colour){
+void initGoalPostChanged(GoalPost *goal, int xSize, int ySize, int xPos, int yPos, int colour)
+{
     goal->xSize = xSize;
     goal->ySize = ySize;
     goal->xPos = xPos;
@@ -501,4 +503,15 @@ void initScreens(Screens *screen)
     screen->titleMain = (short int *)img_title.pixel_data;
     screen->titleStart = (short int *)img_start.pixel_data;
     screen->titleQuit = (short int *)img_quit.pixel_data;
+}
+
+void initBackgrounds(BackGroundImages *bgImg)
+{
+    bgImg->road = (short int *)img_road.road_stone;
+    bgImg->rainbow = (short int *)img_road.road_rainbow;
+    bgImg->grass1 = (short int *)img_bg.lightgrass_data;
+    bgImg->grass2 = (short int *)img_bg.darkgrass_data;
+    bgImg->water = (short int *)img_bg.water_data;
+    bgImg->lava = (short int *)img_bg.lava_data;
+    bgImg->space = (short int *)img_bg.space_data;
 }

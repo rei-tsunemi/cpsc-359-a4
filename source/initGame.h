@@ -175,6 +175,19 @@ typedef struct
 
 } Screens;
 
+typedef struct
+{
+    short int *road;
+    short int *rainbow;
+    short int *grass1;
+    short int *grass2;
+    short int *water;
+    short int *lava;
+    short int *space;
+
+    int grassSelect;
+} BackGroundImages;
+
 static int Y_DIM = 33; // 33
 static int X_DIM = 60; // 60
 
@@ -199,6 +212,7 @@ typedef struct
 
 static int baseSpeed = 55000;
 static int gridSize = 32;
+static int backgroundSize = 32 * 32 * 2 + 1;
 
 // static int MAX_BUGS = 15;
 // static int MAX_ITEMS = 15;
@@ -260,3 +274,5 @@ void changeTreePos(int i, int x, int y, TreePositions *trees);
 void makeLineOfTrees(int x, int y, int *curr, int *used, int stop, int d, GameState *gs);
 
 void initScreens(Screens *screen);
+
+void initBackgrounds(BackGroundImages *bgImg);
