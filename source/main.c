@@ -1075,9 +1075,6 @@ void screenMenu(int *game, GameState *gamestate)
 {
 	Pixel *pix;
 	pix = malloc(sizeof(Pixel));
-	// short int *menuPtr = (short int *)img_title.pixel_data;
-	// short int *startPtr = (short int *)img_start.pixel_data;
-	// short int *quitPtr = (short int *)img_quit.pixel_data;
 
 	int numOfButtons = 16; // number of buttons on snes
 	int i;
