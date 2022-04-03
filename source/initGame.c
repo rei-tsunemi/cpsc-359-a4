@@ -158,8 +158,6 @@ void initGameState(GameState *gamestate)
     int maxCoins = 30;
     int maxTrees = 150;
 
-    gamestate->winCond = 0;
-
     gamestate->spritesForScene = malloc(sizeof(SpriteCount));
 
     // init mario
@@ -207,6 +205,7 @@ void initScene1(GameState *gamestate)
 
     // init important game state stuff
     gamestate->loseCond = 0;
+    gamestate->winCond = 0;
     gamestate->timeLeft = 60;
     gamestate->lives = 5;
     gamestate->score = 0;
@@ -334,6 +333,7 @@ void initScene2(GameState *gamestate)
     gamestate->sceneStatus = 1;
     gamestate->scene = 2;
     gamestate->loseCond = 0;
+    gamestate->winCond = 0;
     changeMarioPosScene(gamestate->mario, 32, 736);
     int i, j;
     for (i = 0; i < Y_DIM; i++)
@@ -350,6 +350,7 @@ void initScene3(GameState *gamestate)
     // copy background 2 into the gamestate
     changeMarioPosScene(gamestate->mario, 32, 96);
     gamestate->loseCond = 0;
+    gamestate->winCond = 0;
     gamestate->timeLeft += 60;
     gamestate->sceneStatus = 1;
     gamestate->scene = 3;
@@ -367,6 +368,7 @@ void initScene4(GameState *gamestate)
 {
     // copy background 2 into the
     gamestate->loseCond = 0;
+    gamestate->winCond = 0;
     gamestate->timeLeft += 75;
     gamestate->sceneStatus = 1;
     gamestate->scene = 4;

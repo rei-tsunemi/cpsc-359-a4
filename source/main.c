@@ -894,7 +894,7 @@ void testForCollisions(Mario *mario,
 
 		{
 			*status = 0;
-			gamestate->winCond++;
+			gamestate->winCond = 1;
 			gamestate->sceneStatus = 0;
 			Wait(100000);
 			// gamestate->scene++;
@@ -1274,22 +1274,22 @@ void winloseCondCheck(GameState *gamestate, Pixel *pixel)
 		return;
 	}
 
-	if (gamestate->winCond == 1)
+	if (gamestate->winCond == 1 && gamestate->scene == 1)
 	{
 		calcScenceEndScore(gamestate, pixel);
 		gamestate->scene++;
 	}
-	else if (gamestate->winCond == 2)
+	else if (gamestate->winCond == 1 && gamestate->scene == 2)
 	{
 		calcScenceEndScore(gamestate, pixel);
 		gamestate->scene++;
 	}
-	else if (gamestate->winCond == 3)
+	else if (gamestate->winCond == 1 && gamestate->scene == 3)
 	{
 		calcScenceEndScore(gamestate, pixel);
 		gamestate->scene++;
 	}
-	else if (gamestate->winCond == 4)
+	else if (gamestate->winCond == 1 && gamestate->scene == 4)
 	{
 		calcScenceEndScore(gamestate, pixel);
 		gamestate->scene++;
