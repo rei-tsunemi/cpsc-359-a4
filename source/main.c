@@ -776,7 +776,8 @@ void determineValuePackEffect(Mario *mario, GameState *gs)
 	}
 	else if (rng == 1)
 	{
-		gs->lives++;
+		if (gs->lives < 9)
+			gs->lives++;
 		drawLivesDisplay(gs, pixel);
 	}
 	else if (rng == 2)
@@ -953,6 +954,7 @@ void drawGameState(Pixel *pixel,
 				// test if anything collided while reading input
 				didMarioCollideWithAnything(&xD, &yD, gamestate);
 				testForCollisions(mario, &xD, &yD, pixel, gamestate, &status, &press);
+				checkForLoseCond(gamestate, &status);
 
 				if ((i >= 4 || i <= 8) && *(globalButtons + i) == 0)
 				{
@@ -961,15 +963,21 @@ void drawGameState(Pixel *pixel,
 					press = i;
 					break; // break out of the for loop
 				}
+				if (!status)
+				{
+					pressed = 1;
+					break;
+				}
 				// set previous position to stationary position if no longer reading input from snes
 				mario->xPrev = xD;
 				mario->yPrev = yD;
 			}
-			checkForLoseCond(gamestate, pressed);
-			checkForLoseCond(gamestate, status);
 		}
 		if (!status)
+		{
+			printf("lose cond\n");
 			break;
+		}
 
 		// gamestate->mario->xPrev = xD;
 		// gamestate->mario->yPrev = yD;
@@ -1253,9 +1261,17 @@ void stageNavigation(GameState *gamestate, Pixel *pixel, Pixel *block)
 
 void winloseCondCheck(GameState *gamestate, Pixel *pixel)
 {
-	if (gamestate->loseCond == 1)
+	if (gamestate->loseCond == 1) // ran out of lives
 	{
+		gamestate->scene = 7;
+		return;
 	}
+	else if (gamestate->loseCond == 2) // ran out of time
+	{
+		gamestate->scene = 7;
+		return;
+	}
+
 	if (gamestate->winCond == 1)
 	{
 		calcScenceEndScore(gamestate, pixel);
@@ -1331,6 +1347,11 @@ void determineStage()
 		{
 			stageNavigation(gamestate, pixel, block);
 			winloseCondCheck(gamestate, pixel);
+		}
+		else if (gamestate->scene == 7)
+		{
+			// sleep(1);
+			gamestate->scene = 0;
 		}
 	}
 
