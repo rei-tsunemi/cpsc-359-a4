@@ -225,7 +225,7 @@ void getBackGroundImage(short int *bgTile, int bgPos)
 	}
 	else if (bgPos == 7)
 	{
-		assignBackGround(bgTile, backGrounds->space);
+		assignBackGround(bgTile, backGrounds->water);
 	}
 }
 
@@ -846,7 +846,7 @@ void didMarioCollideWithAnything(int *xD, int *yD, GameState *gs)
 void determineValuePackEffect(Mario *mario, GameState *gs)
 {
 	Pixel *pixel = malloc(sizeof(Pixel));
-	int packChoices = 5;
+	// int packChoices = 5;
 	// int rng = rand() % packChoices;
 	int rng = 0;
 	if (rng == 0)
@@ -904,10 +904,11 @@ void testForCollisions(Mario *mario,
 					   short int *bgTile)
 {
 	int marioFell = 0;
-	int backGroundPos = gs->bg[*yD / gridSize][*xD / gridSize];
+
 	int colour = gs->bg[*yD / gridSize][*xD / gridSize];
 	getBackGroundImage(bgTile, colour);
 
+	// int backGroundPos = gs->bg[*yD / gridSize][*xD / gridSize];
 	// backGroundDeathZones(&backGroundPos, &marioFell);
 
 	if (gs->mario->gotHit == 1 || marioFell)
@@ -1037,8 +1038,8 @@ void checkForLoseCond(GameState *gs, int *flag)
 	}
 	else if (gs->timeLeft == -1)
 	{
-		gs->loseCond = 2;
-		*flag = 0;
+		// gs->loseCond = 2;
+		// *flag = 0;
 	}
 }
 
@@ -1411,7 +1412,7 @@ void drawNewScene(GameState *gamestate, Alphabet *alp)
 				   gamestate->trees->drawSize,
 				   gamestate->trees->drawSize,
 				   pixel,
-				   gamestate->trees->imgPtr_light,
+				   gamestate->trees->imgPtr_dark,
 				   2016);
 	}
 
