@@ -58,7 +58,6 @@ typedef struct
 {
     short int *imgPtr_dark;
     short int *imgPtr_dead;
-    short int *imgPtr_light;
     int drawSize;
 } Tree;
 
@@ -183,9 +182,7 @@ typedef struct
     short int *grass2;
     short int *water;
     short int *lava;
-    short int *space;
 
-    int grassSelect;
 } BackGroundImages;
 
 static int Y_DIM = 33; // 33

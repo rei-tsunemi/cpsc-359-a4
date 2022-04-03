@@ -94,7 +94,6 @@ void initTrees(Tree *t)
 {
     t->imgPtr_dark = (short int *)treeImg.darktree_data;
     t->imgPtr_dead = (short int *)treeImg.deadtree_data;
-    t->imgPtr_light = (short int *)treeImg.greentree_data;
     t->drawSize = gridSize;
 }
 
@@ -532,5 +531,4 @@ void initBackgrounds(BackGroundImages *bgImg)
     bgImg->grass2 = (short int *)img_bg.darkgrass_data;
     bgImg->water = (short int *)img_bg.water_data;
     bgImg->lava = (short int *)img_bg.lava_data;
-    bgImg->space = (short int *)img_bg.space_data;
 }
