@@ -213,6 +213,8 @@ void initCoin(Coin *coin);
 
 void initGoalPost(GoalPost *goal);
 
+void initGoalPostChanged(GoalPost *goal, int xSize, int ySize, int xPos, int yPos, int colour);
+
 void changeCoinAtPos(int i, int xS, int yS, CoinPositions *coinposition);
 
 void changeItemAtPos(int i, int xS, int yS, ItemBlockPositions *itemblocks);

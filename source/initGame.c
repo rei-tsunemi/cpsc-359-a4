@@ -73,11 +73,19 @@ void initCoin(Coin *coin)
 
 void initGoalPost(GoalPost *goal)
 {
-    goal->xSize = 5;
-    goal->ySize = 96;
-    goal->xPos = 1792;
-    goal->yPos = 704;
-    goal->colour = 0xFF00;
+    goal->xSize = 0;
+    goal->ySize = 0;
+    goal->xPos = 0;
+    goal->yPos = 0;
+    goal->colour = 0;
+}
+
+void initGoalPostChanged(GoalPost *goal, int xSize, int ySize, int xPos, int yPos, int colour){
+    goal->xSize = xSize;
+    goal->ySize = ySize;
+    goal->xPos = xPos;
+    goal->yPos = yPos;
+    goal->colour = colour;
 }
 
 void initTrees(Tree *t)
@@ -225,6 +233,7 @@ void initScene1(GameState *gamestate)
     // gamestate->spritesForScene->trees = 40;
 
     changeMarioPosScene(gamestate->mario, 192, 128);
+    initGoalPostChanged(gamestate->goal, 5, 96, 1792, 704, 0xFF00);
 
     int yPos = 576;
     int xPos = 160;
@@ -339,7 +348,10 @@ void initScene2(GameState *gamestate)
     gamestate->scene = 2;
     gamestate->loseCond = 0;
     gamestate->winCond = 0;
+
     changeMarioPosScene(gamestate->mario, 32, 736);
+    initGoalPostChanged(gamestate->goal, 5, 128, 1824, 896, 0xFF00);
+
     int i, j;
     for (i = 0; i < Y_DIM; i++)
     {
@@ -353,7 +365,9 @@ void initScene2(GameState *gamestate)
 void initScene3(GameState *gamestate)
 {
     // copy background 2 into the gamestate
-    changeMarioPosScene(gamestate->mario, 32, 96);
+    changeMarioPosScene(gamestate->mario, 32, 736);
+    initGoalPostChanged(gamestate->goal, 5, 96, 96, 128, 0xFF00);
+
     gamestate->loseCond = 0;
     gamestate->winCond = 0;
     gamestate->timeLeft += 60;
@@ -377,7 +391,10 @@ void initScene4(GameState *gamestate)
     gamestate->timeLeft += 75;
     gamestate->sceneStatus = 1;
     gamestate->scene = 4;
-    changeMarioPosScene(gamestate->mario, 32, 736);
+
+    changeMarioPosScene(gamestate->mario, 1888, 256);
+    initGoalPostChanged(gamestate->goal, 5, 64, 64, 960, 0x0FF0);
+
     int i, j;
     for (i = 0; i < Y_DIM; i++)
     {
