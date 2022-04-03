@@ -1034,16 +1034,39 @@ void drawGameState(Pixel *pixel,
 	pthread_join(itemThread, NULL);
 }
 
+void pressAnyButton()
+{
+	int i, pressed;
+	int numOfButtons = 16;
+	pressed = 0;
+
+	while (!pressed)
+	{
+		Read_SNES();
+		for (i = 1; i <= numOfButtons; i++)
+		{
+
+			if (*(globalButtons + i) == 0)
+			{
+				// printf("%d was pressed", i);
+				pressed = 1;
+				break; // break out of the for loop
+			}
+		}
+	}
+}
 void drawWinLose(GameState *gs)
 {
 	Pixel *pixel = malloc(sizeof(Pixel));
 	if (gs->scene == 5)
 	{
-		// drawImage(96, 60, 960, 1728, pix, screens->titleMain);
+		drawImage(0, 64, 960, 1728, pixel, screens->winScreen);
+		pressAnyButton();
 	}
 	else
 	{
-		drawImage(0, 64, 1080, 1920, pixel, screens->loseScreen);
+		drawImage(0, 64, 720, 1280, pixel, screens->loseScreen);
+		pressAnyButton();
 	}
 	free(pixel);
 }
