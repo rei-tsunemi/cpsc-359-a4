@@ -376,21 +376,10 @@ void drawHeader(Alphabet *word)
 void clearScreen()
 {
 	Pixel *pixel = malloc(sizeof(Pixel));
-	int x = X_DIM;
-	int y = Y_DIM;
-	int size = gridSize;
-	int i, j, xPos, yPos;
+	int xD = 1920;
+	int yD = 1080;
 	int colour = 0x0000;
-	for (i = 0; i < y; i++)
-	{
-		for (j = 0; j < x; j++)
-		{
-			xPos = size * j;
-			yPos = size * i;
-
-			drawBlock(size, size, xPos, yPos, colour, pixel);
-		}
-	}
+	drawBlock(xD, yD, 0, 0, colour, pixel);
 	free(pixel);
 }
 
@@ -1155,7 +1144,6 @@ void screenMenu(int *game, GameState *gamestate)
 			}
 			else if (quit == 1)
 			{
-				// drawBlock(1920, 1056, 0, 0, 0x0000, pix);
 				clearScreen();
 				(*game) = 0;
 				status = 0;
@@ -1394,6 +1382,7 @@ void determineStage()
 	{
 		if (gamestate->scene == 0)
 		{
+			clearScreen();
 			screenMenu(&gameOn, gamestate);
 			initScene1(gamestate);
 		}
