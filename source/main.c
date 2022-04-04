@@ -1489,6 +1489,7 @@ void determineStage()
 
 int main()
 {
+	// comment
 	/* initialize snes contoller*/
 	gpioPtr = getGPIOPtr(); // init the virtual base address
 	Init_GPIO();			// init the clock, latch, data
