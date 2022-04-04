@@ -881,8 +881,8 @@ void testForCollisions(Mario *mario,
 	int colour = gs->bg[*yD / gridSize][*xD / gridSize];
 	getBackGroundImage(bgTile, colour);
 
-	int backGroundPos = gs->bg[*yD / gridSize][*xD / gridSize];
-	backGroundDeathZones(&backGroundPos, &marioFell);
+	// int backGroundPos = gs->bg[*yD / gridSize][*xD / gridSize];
+	// backGroundDeathZones(&backGroundPos, &marioFell);
 
 	if (gs->mario->gotHit == 1 || marioFell)
 	{
