@@ -46,13 +46,13 @@ typedef struct
     short int **digits;
 } DigitsToDraw;
 
-typedef struct
-{
-    short int *imgptr_front;
-    short int *imgptr_back;
-    short int *imgptr_right;
-    short int *imgptr_left;
-} MarioImg;
+// typedef struct
+// {
+//     short int *imgptr_front;
+//     short int *imgptr_back;
+//     short int *imgptr_right;
+//     short int *imgptr_left;
+// } MarioImg;
 
 typedef struct
 {
@@ -110,13 +110,13 @@ typedef struct
     short int *coinPtr_right;
 } Coin;
 
-typedef struct
-{
-    BugSprite *bugs;
-    MarioImg *marioImg;
-    ItemBlock *blockImg;
+// typedef struct
+// {
+//     BugSprite *bugs;
+//     MarioImg *marioImg;
+//     ItemBlock *blockImg;
 
-} SpriteImages;
+// } SpriteImages;
 
 typedef struct
 {
@@ -258,7 +258,7 @@ void freeDigitsToDrawObjects(DigitsToDraw *dtd);
 
 void initDigitsToDraw(DigitsToDraw *dtd);
 
-void initSpriteImgs(SpriteImages *imgs);
+// void initSpriteImgs(SpriteImages *imgs);
 
 void initDigitsToDraw(DigitsToDraw *dtd);
 
