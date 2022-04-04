@@ -12,6 +12,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/*CPSC 359
+ * PETER KUCHEL 30008687
+ * REI TSUNEMI 30121202
+ *
+ * ASSIGNMENT 4
+ *
+ *
+ * art sources for the game can be found in resources.txt
+ *
+ * */
+
 void initMario(Mario *mario)
 {
     mario->moveSpeed = baseSpeed;

@@ -29,8 +29,8 @@
  * ASSIGNMENT 4
  *
  *
- * art for mario from: https://www.spriters-resource.com/custom_edited/mariocustoms/sheet/62611/
- * art for the bugs from:
+ * art sources for the game can be found in resources.txt
+ *
  * */
 
 #define CLK 11 // clock
