@@ -174,16 +174,16 @@ typedef struct
 
 } Screens;
 
-typedef struct
-{
-    short int *road;
-    short int *rainbow;
-    short int *grass1;
-    short int *grass2;
-    short int *water;
-    short int *lava;
+// typedef struct
+// {
+//     short int *road;
+//     short int *rainbow;
+//     short int *grass1;
+//     short int *grass2;
+//     short int *water;
+//     short int *lava;
 
-} BackGroundImages;
+// } BackGroundImages;
 
 static int Y_DIM = 33; // 33
 static int X_DIM = 60; // 60
@@ -273,4 +273,4 @@ void makeLineOfTrees(int x, int y, int *curr, int *used, int stop, int d, GameSt
 
 void initScreens(Screens *screen);
 
-void initBackgrounds(BackGroundImages *bgImg);
+// void initBackgrounds(BackGroundImages *bgImg);
