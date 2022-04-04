@@ -1035,6 +1035,78 @@ void testForCollisions(Mario *mario,
 		}
 	}
 }
+void drawPauseMenu(GameState *gamestate, int *x, int *y, Mario *m, int *status, Pixel *pix)
+{
+	int paused = 1;
+	int numOfButtons = 16; // number of buttons on snes
+	int i;
+	int restart = 0;
+	int quit = 0;
+	int xStart = 420;
+	int yStart = 250;
+
+	short int *pausemenuPtr = (short int *)pause_M.pixel_data;
+	short int *restartPtr = (short int *)pause_R.pixel_data;
+	short int *quitgamePtr = (short int *)pause_Q.pixel_data;
+
+	drawImage(xStart, yStart, 576, 1056, pix, pausemenuPtr);
+	while (paused)
+	{
+		int pressed = 0;
+		while (!pressed)
+		{
+			Read_SNES();
+			for (i = 1; i <= numOfButtons; i++)
+			{
+				if ((i >= 4 || i <= 8) && *(globalButtons + i) == 0)
+				{
+					pressed = 1;
+					break; // break out of the for loop
+				}
+			}
+		}
+		if (i == 4)
+		{
+			(*x) = m->xPos;
+			(*y) = m->yPos;
+			paused = 0;
+			*status = 1;
+			gamestate->sceneStatus = 2;
+			// drawNewScene(gamestate);
+			Wait(800000);
+		}
+		else if (i == 5)
+		{
+			drawImage(xStart, yStart, 576, 1056, pix, restartPtr);
+			quit = 0;
+			restart = 1;
+		}
+		else if (i == 6)
+		{
+			drawImage(xStart, yStart, 576, 1056, pix, quitgamePtr);
+			quit = 1;
+			restart = 0;
+		}
+		else if (i == 9)
+		{
+			if (restart == 1)
+			{
+				gamestate->scene = 1;
+				gamestate->sceneStatus = 0;
+				gamestate->winCond = 0;
+				gamestate->score = 0;
+				paused = 0;
+			}
+			else if (quit == 1)
+			{
+				paused = 0;
+				gamestate->scene = 0;
+				gamestate->sceneStatus = 0;
+				gamestate->winCond = 0;
+			}
+		}
+	}
+}
 
 void checkForLoseCond(GameState *gs, int *flag)
 {
@@ -1271,79 +1343,6 @@ void screenMenu(GameState *gamestate, Pixel *pix)
 				clearScreen(pix);
 				gamestate->gameOn = 0;
 				status = 0;
-			}
-		}
-	}
-}
-
-void drawPauseMenu(GameState *gamestate, int *x, int *y, Mario *m, int *status, Pixel *pix)
-{
-	int paused = 1;
-	int numOfButtons = 16; // number of buttons on snes
-	int i;
-	int restart = 0;
-	int quit = 0;
-	int xStart = 420;
-	int yStart = 250;
-
-	short int *pausemenuPtr = (short int *)pause_M.pixel_data;
-	short int *restartPtr = (short int *)pause_R.pixel_data;
-	short int *quitgamePtr = (short int *)pause_Q.pixel_data;
-
-	drawImage(xStart, yStart, 576, 1056, pix, pausemenuPtr);
-	while (paused)
-	{
-		int pressed = 0;
-		while (!pressed)
-		{
-			Read_SNES();
-			for (i = 1; i <= numOfButtons; i++)
-			{
-				if ((i >= 4 || i <= 8) && *(globalButtons + i) == 0)
-				{
-					pressed = 1;
-					break; // break out of the for loop
-				}
-			}
-		}
-		if (i == 4)
-		{
-			(*x) = m->xPos;
-			(*y) = m->yPos;
-			paused = 0;
-			*status = 1;
-			gamestate->sceneStatus = 2;
-			// drawNewScene(gamestate);
-			Wait(800000);
-		}
-		else if (i == 5)
-		{
-			drawImage(xStart, yStart, 576, 1056, pix, restartPtr);
-			quit = 0;
-			restart = 1;
-		}
-		else if (i == 6)
-		{
-			drawImage(xStart, yStart, 576, 1056, pix, quitgamePtr);
-			quit = 1;
-			restart = 0;
-		}
-		else if (i == 9)
-		{
-			if (restart == 1)
-			{
-				gamestate->scene = 1;
-				gamestate->sceneStatus = 0;
-				gamestate->winCond = 0;
-				gamestate->score = 0;
-				paused = 0;
-			}
-			else if (quit == 1)
-			{
-				paused = 0;
-				gamestate->scene = 0;
-				gamestate->sceneStatus = 0;
-				gamestate->winCond = 0;
 			}
 		}
 	}
