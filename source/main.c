@@ -198,7 +198,7 @@ void getBackGroundImage(short int *bgTile, int bgPos)
 		for (i = 0; i < backgroundSize; i++)
 			*(bgTile + i) = 0xFFFF;
 	}
-	else if (bgPos == 1)
+	else if (bgPos == 1 || bgPos == 7)
 	{
 		for (i = 0; i < backgroundSize; i++)
 			*(bgTile + i) = 0x0000;
@@ -223,10 +223,10 @@ void getBackGroundImage(short int *bgTile, int bgPos)
 	{
 		assignBackGround(bgTile, backGrounds->rainbow);
 	}
-	else if (bgPos == 7)
-	{
-		assignBackGround(bgTile, backGrounds->water);
-	}
+	// else if (bgPos == 7)
+	// {
+	// 	assignBackGround(bgTile, backGrounds->water);
+	// }
 }
 
 int getBackGroundColour(GameState *gs, int *x, int *y)
@@ -247,21 +247,21 @@ void checkCollision(int *x, int *y, int *xToCheck, int *yToCheck, int *flag)
 void getCartSpeed(int *speed, int *x, int *y, int bg[Y_DIM][X_DIM], int *speedBonus)
 {
 
-	*speed = baseSpeed;
-	// int colourPos = bg[*y / gridSize][*x / gridSize];
-	// if (colourPos != 2)
-	// {
-	// 	*speed = baseSpeed * 4;
-	// 	*speedBonus = 0;
-	// }
-	// else if (*speedBonus)
-	// {
-	// 	return;
-	// }
-	// else
-	// {
-	// 	*speed = baseSpeed;
-	// }
+	// *speed = baseSpeed;
+	int colourPos = bg[*y / gridSize][*x / gridSize];
+	if (colourPos != 2)
+	{
+		*speed = baseSpeed * 4;
+		*speedBonus = 0;
+	}
+	else if (*speedBonus)
+	{
+		return;
+	}
+	else
+	{
+		*speed = baseSpeed;
+	}
 }
 
 void determineButtonPressed(int i, int *x, int *y, GameState *gs)
@@ -372,27 +372,14 @@ void drawHeader(Alphabet *word, Pixel *pix)
 
 	/* printing all alphabet for level */
 	drawImage(0, 0, dim, dim, pix, word->alpPtr_l);
-	// drawImage(64, 0, dim, dim, pix, word->alpPtr_e);
 	drawImage(64, 0, dim, dim, pix, word->alpPtr_v);
-	// drawImage(128, 0, dim, dim, pix, word->alpPtr_v);
-	// drawImage(192, 0, dim, dim, pix, word->alpPtr_e);
 	drawImage(128, 0, dim, dim, pix, word->alpPtr_l);
-	// drawImage(256, 0, dim, dim, pix, word->alpPtr_l);
-	// drawImage(320, 0, dim, dim, pix, word->alpPtr_colon);
-	// drawImage(192, 0, dim, dim, pix, word->alpPtr_colon);
-	// 256
 
 	/* printing all alphabet for life */
 	drawImage(320, 0, dim, dim, pix, word->alpPtr_l);
 	drawImage(384, 0, dim, dim, pix, word->alpPtr_i);
 	drawImage(448, 0, dim, dim, pix, word->alpPtr_f);
 	drawImage(512, 0, dim, dim, pix, word->alpPtr_e);
-	// drawImage(576, 0, dim, dim, pix, word->alpPtr_colon);
-	// drawImage(448, 0, dim, dim, pix, word->alpPtr_l);
-	// drawImage(512, 0, dim, dim, pix, word->alpPtr_i);
-	// drawImage(576, 0, dim, dim, pix, word->alpPtr_f);
-	// drawImage(640, 0, dim, dim, pix, word->alpPtr_e);
-	// drawImage(704, 0, dim, dim, pix, word->alpPtr_colon);
 
 	/* printing all alphabet for score */
 	drawImage(704, 0, dim, dim, pix, word->alpPtr_s);
@@ -401,12 +388,6 @@ void drawHeader(Alphabet *word, Pixel *pix)
 	drawImage(896, 0, dim, dim, pix, word->alpPtr_r);
 	drawImage(960, 0, dim, dim, pix, word->alpPtr_e);
 	drawImage(1024, 0, dim, dim, pix, word->alpPtr_colon);
-	// drawImage(832, 0, dim, dim, pix, word->alpPtr_s);
-	// drawImage(896, 0, dim, dim, pix, word->alpPtr_c);
-	// drawImage(960, 0, dim, dim, pix, word->alpPtr_o);
-	// drawImage(1024, 0, dim, dim, pix, word->alpPtr_r);
-	// drawImage(1088, 0, dim, dim, pix, word->alpPtr_e);
-	// drawImage(1152, 0, dim, dim, pix, word->alpPtr_colon);
 
 	/* printing all alphabet for time */
 	drawImage(1408, 0, dim, dim, pix, word->alpPtr_t);
@@ -418,7 +399,6 @@ void drawHeader(Alphabet *word, Pixel *pix)
 
 void clearScreen(Pixel *pixel)
 {
-
 	int xD = 1920;
 	int yD = 1080;
 	int colour = 0x0000;
@@ -427,7 +407,6 @@ void clearScreen(Pixel *pixel)
 
 void repaint(int i, int xD, int yD, Pixel *pixel, int bg[Y_DIM][X_DIM], short int *tile)
 {
-	// int gridDim = 32;
 	int xPaint = xD;
 	int yPaint = yD;
 	int colour;
@@ -486,30 +465,21 @@ void bugCollision(int *xD, int *yD, GameState *gs)
 	if (gs->mario->canGetHit)
 	{
 		if ((*xD == gs->mario->xPos) && (*yD == gs->mario->yPos))
-		{
-			// gs->marioGotHit = 1;
 			gs->mario->gotHit = 1;
-			// printf("bug hit mario ");
-		}
+
 		if ((*xD == gs->mario->xPrev) && (*yD == gs->mario->yPrev))
-		{
-			// gs->marioGotHit = 1;
 			gs->mario->gotHit = 1;
-			// printf("bug hit mario ");
-		}
 	}
 }
 
-// void drawBugs(Pixel *pixel, BugSprite *bug, GameState *gs)
 void drawBugs(Pixel *pixel, GameState *gs, short int *tile)
 {
 
 	int i, colour, currentShift, moveD;
 	int xD, yD, xPrev, yPrev;
-	// int bugsToPrint = numOfSprites->bugs;
 	int bugsToPrint = gs->spritesForScene->bugs;
 	BugSprite *bug = gs->bugs;
-	// int offSet = gridSize;
+
 	for (i = 0; i < bugsToPrint; i++)
 	{
 
@@ -520,9 +490,6 @@ void drawBugs(Pixel *pixel, GameState *gs, short int *tile)
 		findBugCurrentSpot(&xD, &yD, &xPrev, &yPrev, (gs->bugSpots + i));
 
 		currentShift++;
-
-		// repaint where it was first
-		// colour = getColour(gs->bg[yPrev / gridSize][xPrev / gridSize]);
 
 		colour = gs->bg[yPrev / gridSize][xPrev / gridSize];
 		getBackGroundImage(tile, colour);
@@ -565,7 +532,6 @@ void *drawBugsAtPos(void *param)
 
 	while (gamestate->sceneStatus)
 	{
-		// drawBugs(pixel, gamestate->bugs, gamestate);
 		drawBugs(pixel, gamestate, tile);
 	}
 	free(tile);
@@ -638,22 +604,16 @@ void drawCoins(Pixel *pixel, GameState *gs, short int *tile)
 			// drawBlock(cn->drawSize, cn->drawSize, xD, yD, bgColour, pixel);
 
 			if (drawFace == 0)
-			{
-
 				drawSprite(xD, yD, cn->drawSize, cn->drawSize, pixel, cn->coinPtr_side, 1215);
-			}
+
 			else if (drawFace == 1)
-			{
 				drawSprite(xD, yD, cn->drawSize, cn->drawSize, pixel, cn->coinPtr_left, 1215);
-			}
+
 			else if (drawFace == 2)
-			{
 				drawSprite(xD, yD, cn->drawSize, cn->drawSize, pixel, cn->coinPtr_front, 1215);
-			}
+
 			else if (drawFace == 3)
-			{
 				drawSprite(xD, yD, cn->drawSize, cn->drawSize, pixel, cn->coinPtr_right, 1215);
-			}
 
 			drawFace++;
 			if (drawFace == 4)
@@ -859,9 +819,9 @@ void didMarioCollideWithAnything(int *xD, int *yD, GameState *gs)
 void determineValuePackEffect(Mario *mario, GameState *gs, Pixel *pixel)
 {
 
-	// int packChoices = 5;
-	// int rng = rand() % packChoices;
-	int rng = 0;
+	int packChoices = 5;
+	int rng = rand() % packChoices;
+	// int rng = 0;
 	if (rng == 0)
 	{
 		gs->score += 15;
@@ -870,17 +830,17 @@ void determineValuePackEffect(Mario *mario, GameState *gs, Pixel *pixel)
 	else if (rng == 1)
 	{
 		if (gs->lives < 9)
-			gs->lives++;
+			gs->lives += 3;
 		drawLivesDisplay(gs, pixel);
 	}
 	else if (rng == 2)
 	{
-		gs->timeLeft += 25;
+		gs->timeLeft += 45;
 	}
 	else if (rng == 3)
 	{
-		// mario->moveSpeed += 200000;
-		mario->moveSpeed += 1;
+		mario->moveSpeed += 200000;
+		// mario->moveSpeed += 1;
 		mario->speedBonus = 1;
 	}
 	else if (rng == 4)
@@ -894,16 +854,11 @@ void determineValuePackEffect(Mario *mario, GameState *gs, Pixel *pixel)
 
 void backGroundDeathZones(int *pos, int *flag)
 {
-
 	// these numbers correspond to the colour map positions
 	if (*pos == 4 || *pos == 3 || *pos == 7)
-	{
 		*flag = 1;
-	}
 	else
-	{
 		*flag = 0;
-	}
 }
 
 void testForCollisions(Mario *mario,
@@ -920,8 +875,8 @@ void testForCollisions(Mario *mario,
 	int colour = gs->bg[*yD / gridSize][*xD / gridSize];
 	getBackGroundImage(bgTile, colour);
 
-	// int backGroundPos = gs->bg[*yD / gridSize][*xD / gridSize];
-	// backGroundDeathZones(&backGroundPos, &marioFell);
+	int backGroundPos = gs->bg[*yD / gridSize][*xD / gridSize];
+	backGroundDeathZones(&backGroundPos, &marioFell);
 
 	if (gs->mario->gotHit == 1 || marioFell)
 	{
@@ -945,6 +900,7 @@ void testForCollisions(Mario *mario,
 			else
 				drawSprite(*xD, *yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_right, -31505);
 			delayMicroseconds(150000);
+
 			// drawBlock(mario->drawSize, mario->drawSize, *xD, *yD, colour, pixel);
 			drawImage(*xD, *yD, gridSize, gridSize, pixel, bgTile);
 			if (fallSpin == 3)
@@ -952,8 +908,6 @@ void testForCollisions(Mario *mario,
 			else
 				fallSpin++;
 		}
-		// }
-
 		// drawBlock(mario->drawSize, mario->drawSize, *xD, *yD, colour, pixel);
 		drawImage(*xD, *yD, gridSize, gridSize, pixel, bgTile);
 
@@ -1031,7 +985,6 @@ void testForCollisions(Mario *mario,
 			gs->winCond = 1;
 			gs->sceneStatus = 0;
 			Wait(100000);
-			// gamestate->scene++;
 		}
 	}
 }
@@ -1072,7 +1025,6 @@ void drawPauseMenu(GameState *gamestate, int *x, int *y, Mario *m, int *status, 
 			paused = 0;
 			*status = 1;
 			gamestate->sceneStatus = 2;
-			// drawNewScene(gamestate);
 			Wait(800000);
 		}
 		else if (i == 5)
@@ -1117,8 +1069,8 @@ void checkForLoseCond(GameState *gs, int *flag)
 	}
 	else if (gs->timeLeft == -1)
 	{
-		// gs->loseCond = 2;
-		// *flag = 0;
+		gs->loseCond = 2;
+		*flag = 0;
 	}
 }
 
@@ -1151,7 +1103,6 @@ void drawGameState(Pixel *pixel,
 	while (status && (gamestate->sceneStatus == 1))
 	{
 		int pressed = 0;
-		// checkForLoseCond(gamestate, status);
 
 		while (!pressed)
 		{
@@ -1166,7 +1117,6 @@ void drawGameState(Pixel *pixel,
 
 				if ((i >= 4 || i <= 8) && *(globalButtons + i) == 0)
 				{
-					// printf("%d was pressed", i);
 					pressed = 1;
 					press = i;
 					break; // break out of the for loop
@@ -1187,38 +1137,26 @@ void drawGameState(Pixel *pixel,
 			break;
 		}
 
-		// gamestate->mario->xPrev = xD;
-		// gamestate->mario->yPrev = yD;
 		mario->xPrev = xD;
 		mario->yPrev = yD;
-		// getCartSpeed(&speed, &xD, &yD, gamestate->bg);			  // determine the speed
-		// determineButtonPressed(press, &xD, &yD, &status, &speed); // find which direction mario should go
 
 		getCartSpeed(&(mario->moveSpeed), &xD, &yD, gamestate->bg, &(mario->speedBonus));
 		determineButtonPressed(press, &xD, &yD, gamestate);
-		// gamestate->mario->xPos = xD;
-		// gamestate->mario->yPos = yD;
+
 		mario->xPos = xD;
 		mario->yPos = yD;
 
 		didMarioCollideWithAnything(&xD, &yD, gamestate);
-		// delayMicroseconds(speed); // delay to make it seem likes the cart moves slower
-		delayMicroseconds(mario->moveSpeed);
+		delayMicroseconds(mario->moveSpeed); // delay to make it seem likes the cart moves slower
 
 		repaint(press, xD, yD, pixel, gamestate->bg, bgTile);
 		testForCollisions(mario, &xD, &yD, pixel, gamestate, &status, &press, bgTile);
 
 		if (i == 4)
 		{
-			// pthread_cancel(bugThread);
-			// pthread_cancel(timeT);
-			// pthread_cancel(itemThread);
 			gamestate->sceneStatus = 0;
 			Wait(800000);
 			drawPauseMenu(gamestate, &xD, &yD, mario, &status, pixel);
-			// gamestate->sceneStatus = 2;
-
-			// break;
 		}
 		else if (press == 5)
 			drawSprite(xD, yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_back, -31505);
@@ -1232,9 +1170,6 @@ void drawGameState(Pixel *pixel,
 	if (status == 0)
 	{
 		gamestate->sceneStatus = 0;
-		// pthread_cancel(bugThread);
-		// pthread_cancel(timeT);
-		// pthread_cancel(itemThread);
 	}
 
 	pthread_join(bugThread, NULL);
@@ -1256,7 +1191,6 @@ void pressAnyButton()
 
 			if (*(globalButtons + i) == 0)
 			{
-				// printf("%d was pressed", i);
 				pressed = 1;
 				break; // break out of the for loop
 			}
@@ -1267,16 +1201,13 @@ void drawWinLose(GameState *gs, Alphabet *alp, Pixel *pixel)
 {
 	if (gs->scene == 5)
 	{
-
 		drawImage(0, 64, 1016, 1920, pixel, screens->winScreen);
 		drawHeader(alp, pixel);
 		sleep(2);
-
 		pressAnyButton();
 	}
 	else
 	{
-
 		drawImage(0, 64, 1016, 1920, pixel, screens->loseScreen);
 		drawHeader(alp, pixel);
 		sleep(2);
@@ -1305,7 +1236,6 @@ void screenMenu(GameState *gamestate, Pixel *pix)
 			{
 				if ((i >= 4 || i <= 8) && *(globalButtons + i) == 0)
 				{
-					// printf("%d was pressed", i);
 					pressed = 1;
 					break; // break out of the for loop
 				}
@@ -1368,9 +1298,6 @@ void drawNewScene(GameState *gamestate, Alphabet *alp, Pixel *pixel, short int *
 			getBackGroundImage(tile, bgPos);
 
 			drawImage(xOff, yOff, gridSize, gridSize, pixel, tile);
-
-			// int colour = getColour(gamestate->bg[y][x]);
-			// drawBlock(gridSize, gridSize, xOff, yOff, colour, pixel);
 		}
 	}
 
@@ -1486,7 +1413,6 @@ void determineStage()
 		pixel == NULL || bgTile == NULL)
 	{
 		printf("failed to allocate memory inside function determineStage, exiting now\n");
-		printf("sorry about that...\n");
 		exit(0);
 	}
 

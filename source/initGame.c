@@ -368,7 +368,7 @@ void initScene1(GameState *gamestate)
     makeLineOfTrees(xPos, yPos, &currentTree, &numOfTreesUsed, stop, 0, gamestate);
 
     gamestate->spritesForScene->trees = numOfTreesUsed;
-    gamestate->spritesForScene->trees = 0;
+    // gamestate->spritesForScene->trees = 0;
 
     // copy background 1 into the gamestate
     for (i = 0; i < Y_DIM; i++)
@@ -463,10 +463,9 @@ void initScene3(GameState *gamestate)
     gamestate->sceneStatus = 1;
     gamestate->scene = 3;
 
-
     gamestate->spritesForScene->bugs = 9;
-    changeBugsAtPos(0, 384, 928, 0, 42, 1, 1, gamestate->bugSpots); // stays
-    changeBugsAtPos(1, 1728, 960, 0, 35, -1, 1, gamestate->bugSpots);  // stays
+    changeBugsAtPos(0, 384, 928, 0, 42, 1, 1, gamestate->bugSpots);   // stays
+    changeBugsAtPos(1, 1728, 960, 0, 35, -1, 1, gamestate->bugSpots); // stays
 
     changeBugsAtPos(2, 1824, 992, 0, 14, -1, 2, gamestate->bugSpots); // stays
     changeBugsAtPos(3, 1632, 704, 0, 13, -1, 2, gamestate->bugSpots);
@@ -522,10 +521,9 @@ void initScene3(GameState *gamestate)
     yPos = 128;
     makeLineOfTrees(xPos, yPos, &currentTree, &numOfTreesUsed, stop, 0, gamestate);
     yPos = 192;
-    makeLineOfTrees(xPos+(3*gridSize), yPos, &currentTree, &numOfTreesUsed, stop, 0, gamestate);
+    makeLineOfTrees(xPos + (3 * gridSize), yPos, &currentTree, &numOfTreesUsed, stop, 0, gamestate);
 
     gamestate->spritesForScene->trees = 42;
-
 
     gamestate->spritesForScene->items = 8;
     changeItemAtPos(0, 384, 832, gamestate->itemSpots);
@@ -535,9 +533,9 @@ void initScene3(GameState *gamestate)
     changeItemAtPos(4, 1824, 256, gamestate->itemSpots);
     changeItemAtPos(5, 288, 160, gamestate->itemSpots);
     changeItemAtPos(6, 288, 448, gamestate->itemSpots);
-    changeItemAtPos(7, 288, 480, gamestate->itemSpots);    
+    changeItemAtPos(7, 288, 480, gamestate->itemSpots);
 
-    gamestate->spritesForScene->coins = 11; 
+    gamestate->spritesForScene->coins = 11;
 
     changeCoinAtPos(0, 1088, 800, gamestate->coinSpots);
     changeCoinAtPos(1, 1248, 544, gamestate->coinSpots);
@@ -551,7 +549,6 @@ void initScene3(GameState *gamestate)
     changeCoinAtPos(8, 1408, 256, gamestate->coinSpots);
     changeCoinAtPos(9, 1408, 288, gamestate->coinSpots);
     changeCoinAtPos(10, 1408, 320, gamestate->coinSpots);
-    
 
     int i, j;
     for (i = 0; i < Y_DIM; i++)
@@ -580,21 +577,21 @@ void initScene4(GameState *gamestate)
     changeItemAtPos(0, 1664, 384, gamestate->itemSpots);
     changeItemAtPos(1, 1472, 384, gamestate->itemSpots);
     changeItemAtPos(2, 1216, 256, gamestate->itemSpots);
-    changeItemAtPos(3, 1408, 800, gamestate->itemSpots); //stays
-    changeItemAtPos(4, 1824, 256, gamestate->itemSpots); //stays
-    changeItemAtPos(5, 288, 160, gamestate->itemSpots);  //stays
+    changeItemAtPos(3, 1408, 800, gamestate->itemSpots); // stays
+    changeItemAtPos(4, 1824, 256, gamestate->itemSpots); // stays
+    changeItemAtPos(5, 288, 160, gamestate->itemSpots);  // stays
     changeItemAtPos(6, 576, 448, gamestate->itemSpots);
     changeItemAtPos(7, 608, 832, gamestate->itemSpots);
-    changeItemAtPos(8, 160, 448, gamestate->itemSpots); 
+    changeItemAtPos(8, 160, 448, gamestate->itemSpots);
 
-    gamestate->spritesForScene->coins = 32; 
-    changeCoinAtPos(0, 1088, 800, gamestate->coinSpots); //stays
-    changeCoinAtPos(1, 1056, 384, gamestate->coinSpots); 
+    gamestate->spritesForScene->coins = 32;
+    changeCoinAtPos(0, 1088, 800, gamestate->coinSpots); // stays
+    changeCoinAtPos(1, 1056, 384, gamestate->coinSpots);
     changeCoinAtPos(2, 1088, 352, gamestate->coinSpots);
     changeCoinAtPos(3, 1120, 320, gamestate->coinSpots);
     changeCoinAtPos(4, 1152, 288, gamestate->coinSpots);
-    changeCoinAtPos(5, 640, 576, gamestate->coinSpots); //stays
-    changeCoinAtPos(6, 672, 576, gamestate->coinSpots); //stays
+    changeCoinAtPos(5, 640, 576, gamestate->coinSpots); // stays
+    changeCoinAtPos(6, 672, 576, gamestate->coinSpots); // stays
     changeCoinAtPos(7, 1344, 64, gamestate->coinSpots);
     changeCoinAtPos(8, 1312, 64, gamestate->coinSpots);
     changeCoinAtPos(9, 1280, 64, gamestate->coinSpots);
@@ -621,21 +618,17 @@ void initScene4(GameState *gamestate)
     changeCoinAtPos(30, 672, 128, gamestate->coinSpots);
     changeCoinAtPos(31, 704, 96, gamestate->coinSpots);
 
-    
     gamestate->spritesForScene->bugs = 10;
-    changeBugsAtPos(0, 384, 928, 0, 22, -1, 2, gamestate->bugSpots); 
-    changeBugsAtPos(1, 1728, 960, 0, 48, -1, 1, gamestate->bugSpots); //stays
-    changeBugsAtPos(2, 1856, 992, 0, 18, -1, 2, gamestate->bugSpots); 
-    changeBugsAtPos(3, 1632, 320, 0, 18, 1, 2, gamestate->bugSpots); //stays
+    changeBugsAtPos(0, 384, 928, 0, 22, -1, 2, gamestate->bugSpots);
+    changeBugsAtPos(1, 1728, 960, 0, 48, -1, 1, gamestate->bugSpots); // stays
+    changeBugsAtPos(2, 1856, 992, 0, 18, -1, 2, gamestate->bugSpots);
+    changeBugsAtPos(3, 1632, 320, 0, 18, 1, 2, gamestate->bugSpots); // stays
     changeBugsAtPos(4, 1536, 736, 0, 35, -1, 1, gamestate->bugSpots);
-    changeBugsAtPos(5, 256, 416, 0, 37, 1, 1, gamestate->bugSpots); //stays
-    changeBugsAtPos(6, 1312, 608, 0, 5, -1, 1, gamestate->bugSpots);
-    changeBugsAtPos(7, 224, 96, 0, 30, 1, 2, gamestate->bugSpots); //stays
-    changeBugsAtPos(8, 1856, 128, 0, 25, -1, 1, gamestate->bugSpots); //stays
-    changeBugsAtPos(9, 544, 1024, 0, 31, -1, 2, gamestate->bugSpots); //stays
-
-    
-
+    changeBugsAtPos(5, 256, 416, 0, 37, 1, 1, gamestate->bugSpots); // stays
+    changeBugsAtPos(6, 1312, 608, 0, 25, -1, 1, gamestate->bugSpots);
+    changeBugsAtPos(7, 224, 96, 0, 30, 1, 2, gamestate->bugSpots);    // stays
+    changeBugsAtPos(8, 1856, 128, 0, 25, -1, 1, gamestate->bugSpots); // stays
+    changeBugsAtPos(9, 544, 1024, 0, 31, -1, 2, gamestate->bugSpots); // stays
 
     int i, j;
     for (i = 0; i < Y_DIM; i++)
