@@ -170,64 +170,18 @@ int getColour(int num)
 	else if (num == 2)
 		return 0x8430; // grey
 	else if (num == 3)
-		return 0xC841; // red
+		return 0xFB42; // red
 	else if (num == 4)
-		return 0x00FF; // blue
+		return 0x3B34; // blue
 	else if (num == 5)
 		return 0x24c4; // light green
 	else if (num == 6)
-		return 0xCEE2; // creamy yellow
+		return 0xECFA; // creamy yellow
 	else if (num == 7)
 		return 0x0000; // black
 	else
 		return 0x0000; // black
 }
-
-void assignBackGround(short int *tile, short int *image)
-{
-	int i;
-	for (i = 0; i < backgroundSize; i++)
-		*(tile + i) = *(image + i);
-}
-
-// void getBackGroundImage(short int *bgTile, int bgPos)
-// {
-// 	int i;
-// 	if (bgPos == 0)
-// 	{
-// 		for (i = 0; i < backgroundSize; i++)
-// 			*(bgTile + i) = 0xFFFF;
-// 	}
-// 	else if (bgPos == 1 || bgPos == 7)
-// 	{
-// 		for (i = 0; i < backgroundSize; i++)
-// 			*(bgTile + i) = 0x0000;
-// 	}
-// 	else if (bgPos == 2)
-// 	{
-// 		assignBackGround(bgTile, backGrounds->road);
-// 	}
-// 	else if (bgPos == 3)
-// 	{
-// 		assignBackGround(bgTile, backGrounds->lava);
-// 	}
-// 	else if (bgPos == 4)
-// 	{
-// 		assignBackGround(bgTile, backGrounds->water);
-// 	}
-// 	else if (bgPos == 5)
-// 	{
-// 		assignBackGround(bgTile, backGrounds->grass1);
-// 	}
-// 	else if (bgPos == 6)
-// 	{
-// 		assignBackGround(bgTile, backGrounds->rainbow);
-// 	}
-// 	// else if (bgPos == 7)
-// 	// {
-// 	// 	assignBackGround(bgTile, backGrounds->water);
-// 	// }
-// }
 
 int getBackGroundColour(GameState *gs, int *x, int *y)
 {
@@ -473,7 +427,7 @@ void bugCollision(int *xD, int *yD, GameState *gs)
 	}
 }
 
-void drawBugs(Pixel *pixel, GameState *gs, short int *tile)
+void drawBugs(Pixel *pixel, GameState *gs)
 {
 
 	int i, colour, currentShift, moveD;
@@ -524,8 +478,7 @@ void *drawBugsAtPos(void *param)
 {
 	GameState *gamestate = (GameState *)param;
 	Pixel *pixel = malloc(sizeof(Pixel));
-	short int *tile = malloc(sizeof(short int *) * backgroundSize);
-	if (pixel == NULL || tile == NULL)
+	if (pixel == NULL)
 	{
 		printf("failed to allocate in function drawBugsAPos, exiting now\n");
 		gamestate->sceneStatus = 0;
@@ -535,11 +488,9 @@ void *drawBugsAtPos(void *param)
 
 	while (gamestate->sceneStatus)
 	{
-		drawBugs(pixel, gamestate, tile);
+		drawBugs(pixel, gamestate);
 	}
-	free(tile);
 	free(pixel);
-	tile = NULL;
 	pixel = NULL;
 
 	pthread_exit(0);

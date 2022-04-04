@@ -8,7 +8,6 @@
 #include "title.h"
 #include "titleStart.h"
 #include "titlequit.h"
-// #include "bgGraphics.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -756,13 +755,3 @@ void initScreens(Screens *screen)
     screen->titleStart = (short int *)img_start.pixel_data;
     screen->titleQuit = (short int *)img_quit.pixel_data;
 }
-
-// void initBackgrounds(BackGroundImages *bgImg)
-// {
-//     bgImg->road = (short int *)img_road.road_stone;
-//     bgImg->rainbow = (short int *)img_road.road_rainbow;
-//     bgImg->grass1 = (short int *)img_bg.lightgrass_data;
-//     bgImg->grass2 = (short int *)img_bg.darkgrass_data;
-//     bgImg->water = (short int *)img_bg.water_data;
-//     bgImg->lava = (short int *)img_bg.lava_data;
-// }

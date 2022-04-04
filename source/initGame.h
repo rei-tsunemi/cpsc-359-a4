@@ -46,14 +46,6 @@ typedef struct
     short int **digits;
 } DigitsToDraw;
 
-// typedef struct
-// {
-//     short int *imgptr_front;
-//     short int *imgptr_back;
-//     short int *imgptr_right;
-//     short int *imgptr_left;
-// } MarioImg;
-
 typedef struct
 {
     short int *imgPtr_dark;
@@ -110,14 +102,6 @@ typedef struct
     short int *coinPtr_right;
 } Coin;
 
-// typedef struct
-// {
-//     BugSprite *bugs;
-//     MarioImg *marioImg;
-//     ItemBlock *blockImg;
-
-// } SpriteImages;
-
 typedef struct
 {
     int xStart;
@@ -173,17 +157,6 @@ typedef struct
     short int *titleQuit;
 
 } Screens;
-
-// typedef struct
-// {
-//     short int *road;
-//     short int *rainbow;
-//     short int *grass1;
-//     short int *grass2;
-//     short int *water;
-//     short int *lava;
-
-// } BackGroundImages;
 
 static int Y_DIM = 33; // 33
 static int X_DIM = 60; // 60
