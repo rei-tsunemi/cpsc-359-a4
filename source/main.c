@@ -249,19 +249,20 @@ void getCartSpeed(int *speed, int *x, int *y, int bg[Y_DIM][X_DIM], int *speedBo
 
 	// *speed = baseSpeed;
 	int colourPos = bg[*y / gridSize][*x / gridSize];
-	if (colourPos != 2 || colourPos != 6)
-	{
-		*speed = baseSpeed * 4;
-		*speedBonus = 0;
-	}
-	else if (*speedBonus)
+
+	if (*speedBonus)
 	{
 		return;
 	}
-	else
+	else if (colourPos == 2 || colourPos == 6)
 	{
 		*speed = baseSpeed;
 	}
+	else
+	{
+		*speed = baseSpeed * 4;
+		*speedBonus = 0;
+		}
 }
 
 void determineButtonPressed(int i, int *x, int *y, GameState *gs)
