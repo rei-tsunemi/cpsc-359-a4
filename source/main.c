@@ -829,8 +829,13 @@ void determineValuePackEffect(Mario *mario, GameState *gs, Pixel *pixel)
 	}
 	else if (rng == 1)
 	{
-		if (gs->lives < 9)
-			gs->lives += 3;
+		int current = gs->lives;
+		if (current + 3 <= 9)
+			current += 3;
+		else
+			current = 9;
+
+		gs->lives = current;
 		drawLivesDisplay(gs, pixel);
 	}
 	else if (rng == 2)
