@@ -199,7 +199,7 @@ void initGameState(GameState *gamestate)
     int maxBugs = 15;
     int maxItemBlocks = 30;
     int maxCoins = 35;
-    int maxTrees = 150;
+    int maxTrees = 120;
 
     // gamestate->gameOn = 1;
 
