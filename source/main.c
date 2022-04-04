@@ -1399,18 +1399,15 @@ void determineStage()
 	Pixel *pixel = malloc(sizeof(Pixel));
 	GameState *gamestate = malloc(sizeof(GameState));
 	Alphabet *alp = malloc(sizeof(Alphabet));
-	short int *bgTile = malloc(sizeof(short int) * backgroundSize);
 
 	digitsToDraw = malloc(sizeof(DigitsToDraw));
 	screens = malloc(sizeof(Screens));
-	// backGrounds = malloc(sizeof(BackGroundImages));
 
 	if (gamestate == NULL ||
 		alp == NULL ||
 		digitsToDraw == NULL ||
 		screens == NULL ||
-		// backGrounds == NULL ||
-		pixel == NULL || bgTile == NULL)
+		pixel == NULL)
 	{
 		printf("failed to allocate memory inside function determineStage, exiting now\n");
 		exit(0);
@@ -1436,22 +1433,22 @@ void determineStage()
 		}
 		else if (gamestate->scene == 1)
 		{
-			stageNavigation(gamestate, pixel, alp, bgTile);
+			stageNavigation(gamestate, pixel, alp);
 			winloseCondCheck(gamestate, pixel);
 		}
 		else if (gamestate->scene == 2)
 		{
-			stageNavigation(gamestate, pixel, alp, bgTile);
+			stageNavigation(gamestate, pixel, alp);
 			winloseCondCheck(gamestate, pixel);
 		}
 		else if (gamestate->scene == 3)
 		{
-			stageNavigation(gamestate, pixel, alp, bgTile);
+			stageNavigation(gamestate, pixel, alp);
 			winloseCondCheck(gamestate, pixel);
 		}
 		else if (gamestate->scene == 4)
 		{
-			stageNavigation(gamestate, pixel, alp, bgTile);
+			stageNavigation(gamestate, pixel, alp);
 			winloseCondCheck(gamestate, pixel);
 		}
 		else if (gamestate->scene == 5) // player has won
