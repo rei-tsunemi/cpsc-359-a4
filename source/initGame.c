@@ -383,7 +383,7 @@ void initScene1(GameState *gamestate)
 void initScene2(GameState *gamestate)
 {
     // copy background 2 into the gamestate
-    gamestate->timeLeft += 30;
+    gamestate->timeLeft += 100;
     gamestate->sceneStatus = 1;
     gamestate->scene = 2;
     gamestate->loseCond = 0;
@@ -459,7 +459,7 @@ void initScene3(GameState *gamestate)
 
     gamestate->loseCond = 0;
     gamestate->winCond = 0;
-    gamestate->timeLeft += 60;
+    gamestate->timeLeft += 150;
     gamestate->sceneStatus = 1;
     gamestate->scene = 3;
 
@@ -565,7 +565,7 @@ void initScene4(GameState *gamestate)
     // copy background 2 into the
     gamestate->loseCond = 0;
     gamestate->winCond = 0;
-    gamestate->timeLeft += 75;
+    gamestate->timeLeft += 300;
     gamestate->sceneStatus = 1;
     gamestate->scene = 4;
     gamestate->spritesForScene->trees = 0;
