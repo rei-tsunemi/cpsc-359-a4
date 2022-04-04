@@ -66,7 +66,7 @@ typedef struct
 
 struct fbs framebufferstruct;
 void drawPixel(Pixel *pixel);
-void drawPauseMenu(GameState *gamestate, int *x, int *y, Mario *m, int *status);
+void drawPauseMenu(GameState *gamestate, int *x, int *y, Mario *m, int *status, Pixel *pix);
 void determineStage();
 
 void Init_GPIO()
@@ -209,7 +209,7 @@ void getBackGroundImage(short int *bgTile, int bgPos)
 	}
 	else if (bgPos == 3)
 	{
-		assignBackGround(bgTile, backGrounds->lava);
+		assignBackGround(bgTile, backGrounds->water);
 	}
 	else if (bgPos == 4)
 	{
@@ -366,11 +366,9 @@ void drawBlock(int sizeX, int sizeY, int xD, int yD, int clr, Pixel *pixel)
 	}
 }
 
-void drawHeader(Alphabet *word)
+void drawHeader(Alphabet *word, Pixel *pix)
 {
 	int dim = 64; // dimention of each alphabet
-	Pixel *pix;
-	pix = malloc(sizeof(Pixel));
 
 	/* printing all alphabet for level */
 	drawImage(0, 0, dim, dim, pix, word->alpPtr_l);
@@ -416,18 +414,15 @@ void drawHeader(Alphabet *word)
 	drawImage(1536, 0, dim, dim, pix, word->alpPtr_m);
 	drawImage(1600, 0, dim, dim, pix, word->alpPtr_e);
 	drawImage(1664, 0, dim, dim, pix, word->alpPtr_colon);
-
-	free(pix);
 }
 
-void clearScreen()
+void clearScreen(Pixel *pixel)
 {
-	Pixel *pixel = malloc(sizeof(Pixel));
+
 	int xD = 1920;
 	int yD = 1080;
 	int colour = 0x0000;
 	drawBlock(xD, yD, 0, 0, colour, pixel);
-	free(pixel);
 }
 
 void repaint(int i, int xD, int yD, Pixel *pixel, int bg[Y_DIM][X_DIM], short int *tile)
@@ -560,6 +555,11 @@ void *drawBugsAtPos(void *param)
 	GameState *gamestate = (GameState *)param;
 	Pixel *pixel = malloc(sizeof(Pixel));
 	short int *tile = malloc(sizeof(short int *) * backgroundSize);
+	if (pixel == NULL || tile == NULL)
+	{
+		printf("failed to allocate in function drawBugsAPos, exiting now\n");
+		pthread_exit(0);
+	}
 
 	while (gamestate->sceneStatus)
 	{
@@ -568,6 +568,8 @@ void *drawBugsAtPos(void *param)
 	}
 	free(tile);
 	free(pixel);
+	tile = NULL;
+	pixel = NULL;
 
 	pthread_exit(0);
 }
@@ -665,14 +667,11 @@ void *animateValuePack(void *param)
 	GameState *gamestate = (GameState *)param;
 	Pixel *pix = malloc(sizeof(Pixel));
 	short int *tile = malloc(sizeof(short int *) * backgroundSize);
-
-	// sleep(10); // sleeping ten seconds before they appear
-	// int i;
-	// int num = gamestate->spritesForScene->items;
-
-	// set the visible flag
-	// for (i = 0; i < num; i++)
-	// 	(gamestate->itemSpots + i)->isVisible = 1;
+	if (pix == NULL || tile == NULL)
+	{
+		printf("in function animateValuePack memory  alloc failed,exiting now\n");
+		pthread_exit(0);
+	}
 
 	while (gamestate->sceneStatus)
 	{
@@ -681,6 +680,8 @@ void *animateValuePack(void *param)
 	}
 	free(pix);
 	free(tile);
+	pix = NULL;
+	tile = NULL;
 
 	pthread_exit(0);
 }
@@ -715,6 +716,11 @@ void *timerThread(void *param)
 {
 	GameState *gamestate = (GameState *)param;
 	Pixel *pix = malloc(sizeof(Pixel));
+	if (pix == NULL)
+	{
+		printf("could not allocate memory in function timerThread, exiting now\n");
+		pthread_exit(0);
+	}
 
 	while (gamestate->timeLeft != -1 && gamestate->sceneStatus)
 	{
@@ -723,6 +729,7 @@ void *timerThread(void *param)
 		gamestate->timeLeft -= 1;
 	}
 	free(pix);
+	pix = NULL;
 	pthread_exit(0);
 }
 
@@ -843,9 +850,9 @@ void didMarioCollideWithAnything(int *xD, int *yD, GameState *gs)
 	}
 }
 
-void determineValuePackEffect(Mario *mario, GameState *gs)
+void determineValuePackEffect(Mario *mario, GameState *gs, Pixel *pixel)
 {
-	Pixel *pixel = malloc(sizeof(Pixel));
+
 	// int packChoices = 5;
 	// int rng = rand() % packChoices;
 	int rng = 0;
@@ -877,7 +884,6 @@ void determineValuePackEffect(Mario *mario, GameState *gs)
 			mario->moveSpeed = 100;
 		mario->speedBonus = 1;
 	}
-	free(pixel);
 }
 
 void backGroundDeathZones(int *pos, int *flag)
@@ -919,11 +925,6 @@ void testForCollisions(Mario *mario,
 		l--;
 		gs->lives = l;
 
-		// redraw where mario is atm as background
-		// int colour = getColour(gs->bg[*yD / gridSize][*xD / gridSize]);
-
-		// if (marioFell)
-		// {
 		int i;
 		int fallSpin = 0;
 		for (i = 0; i < 10; i++)
@@ -978,7 +979,7 @@ void testForCollisions(Mario *mario,
 		drawImage(*xD, *yD, drawSize, drawSize, pixel, bgTile);
 		drawSprite(*xD, *yD, mario->drawSize, mario->drawSize, pixel, mario->imgptr_front, -31505);
 
-		determineValuePackEffect(mario, gs);
+		determineValuePackEffect(mario, gs, pixel);
 
 		(gs->itemSpots + packPos)->isVisible = 0;
 		mario->didHitPack = 0;
@@ -1045,11 +1046,10 @@ void checkForLoseCond(GameState *gs, int *flag)
 
 void drawGameState(Pixel *pixel,
 				   GameState *gamestate,
-				   Pixel *block,
-				   int bg[Y_DIM][X_DIM])
+				   int bg[Y_DIM][X_DIM],
+				   short int *bgTile)
 {
 	Mario *mario = gamestate->mario;
-	short int *bgTile = malloc(sizeof(short int) * backgroundSize);
 	int status = 1;		   // game status
 	int numOfButtons = 16; // number of buttons on snes
 	int xD = mario->xPos;  // move in x direction
@@ -1137,7 +1137,7 @@ void drawGameState(Pixel *pixel,
 			// pthread_cancel(itemThread);
 			gamestate->sceneStatus = 0;
 			Wait(800000);
-			drawPauseMenu(gamestate, &xD, &yD, mario, &status);
+			drawPauseMenu(gamestate, &xD, &yD, mario, &status, pixel);
 			// gamestate->sceneStatus = 2;
 
 			// break;
@@ -1162,8 +1162,6 @@ void drawGameState(Pixel *pixel,
 	pthread_join(bugThread, NULL);
 	pthread_join(timeT, NULL);
 	pthread_join(itemThread, NULL);
-
-	free(bgTile);
 }
 
 void pressAnyButton()
@@ -1187,14 +1185,13 @@ void pressAnyButton()
 		}
 	}
 }
-void drawWinLose(GameState *gs, Alphabet *alp)
+void drawWinLose(GameState *gs, Alphabet *alp, Pixel *pixel)
 {
-	Pixel *pixel = malloc(sizeof(Pixel));
 	if (gs->scene == 5)
 	{
 
 		drawImage(0, 64, 1016, 1920, pixel, screens->winScreen);
-		drawHeader(alp);
+		drawHeader(alp, pixel);
 		sleep(2);
 
 		pressAnyButton();
@@ -1203,17 +1200,14 @@ void drawWinLose(GameState *gs, Alphabet *alp)
 	{
 
 		drawImage(0, 64, 1016, 1920, pixel, screens->loseScreen);
-		drawHeader(alp);
+		drawHeader(alp, pixel);
 		sleep(2);
 		pressAnyButton();
 	}
-	free(pixel);
 }
 
-void screenMenu(int *game, GameState *gamestate)
+void screenMenu(int *game, GameState *gamestate, Pixel *pix)
 {
-	Pixel *pix;
-	pix = malloc(sizeof(Pixel));
 
 	int numOfButtons = 16; // number of buttons on snes
 	int i;
@@ -1276,10 +1270,8 @@ void screenMenu(int *game, GameState *gamestate)
 	}
 }
 
-void drawPauseMenu(GameState *gamestate, int *x, int *y, Mario *m, int *status)
+void drawPauseMenu(GameState *gamestate, int *x, int *y, Mario *m, int *status, Pixel *pix)
 {
-	Pixel *pix = malloc(sizeof(Pixel));
-	Pixel *blk = malloc(sizeof(Pixel));
 	int paused = 1;
 	int numOfButtons = 16; // number of buttons on snes
 	int i;
@@ -1349,15 +1341,10 @@ void drawPauseMenu(GameState *gamestate, int *x, int *y, Mario *m, int *status)
 			}
 		}
 	}
-	free(pix);
-	free(blk);
 }
 
-void drawNewScene(GameState *gamestate, Alphabet *alp)
+void drawNewScene(GameState *gamestate, Alphabet *alp, Pixel *pixel, short int *tile)
 {
-
-	Pixel *pixel = malloc(sizeof(Pixel));
-	short int *tile = malloc(sizeof(short int *) * backgroundSize);
 
 	int xSize = X_DIM;
 	int ySize = Y_DIM;
@@ -1381,9 +1368,8 @@ void drawNewScene(GameState *gamestate, Alphabet *alp)
 			// drawBlock(gridSize, gridSize, xOff, yOff, colour, pixel);
 		}
 	}
-	free(tile);
 
-	drawHeader(alp);
+	drawHeader(alp, pixel);
 	drawLivesDisplay(gamestate, pixel);
 	drawLevelDisplay(gamestate->scene, pixel);
 	drawScoreDisplay(gamestate, pixel);
@@ -1415,11 +1401,9 @@ void drawNewScene(GameState *gamestate, Alphabet *alp)
 				   gamestate->trees->imgPtr_dark,
 				   2016);
 	}
-
-	free(pixel);
 }
 
-void stageNavigation(GameState *gamestate, Pixel *pixel, Pixel *block, Alphabet *alp)
+void stageNavigation(GameState *gamestate, Pixel *pixel, Alphabet *alp, short int *bgTile)
 {
 	if (gamestate->sceneStatus == 0) // restart
 	{
@@ -1432,14 +1416,14 @@ void stageNavigation(GameState *gamestate, Pixel *pixel, Pixel *block, Alphabet 
 		else if (gamestate->scene == 4)
 			initScene4(gamestate);
 
-		drawNewScene(gamestate, alp);
-		drawGameState(pixel, gamestate, block, gamestate->bg);
+		drawNewScene(gamestate, alp, pixel, bgTile);
+		drawGameState(pixel, gamestate, gamestate->bg, bgTile);
 	}
 	else // unpause
 	{
 		gamestate->sceneStatus = 1;
-		drawNewScene(gamestate, alp);
-		drawGameState(pixel, gamestate, block, gamestate->bg);
+		drawNewScene(gamestate, alp, pixel, bgTile);
+		drawGameState(pixel, gamestate, gamestate->bg, bgTile);
 	}
 }
 
@@ -1480,13 +1464,26 @@ void winloseCondCheck(GameState *gamestate, Pixel *pixel)
 
 void determineStage()
 {
-	GameState *gamestate; // global gamestate
+	Pixel *pixel = malloc(sizeof(Pixel));
+	GameState *gamestate = malloc(sizeof(GameState));
 	Alphabet *alp = malloc(sizeof(Alphabet));
+	short int *bgTile = malloc(sizeof(short int) * backgroundSize);
 
-	gamestate = malloc(sizeof(GameState));
 	digitsToDraw = malloc(sizeof(DigitsToDraw));
 	screens = malloc(sizeof(Screens));
 	backGrounds = malloc(sizeof(BackGroundImages));
+
+	if (gamestate == NULL ||
+		alp == NULL ||
+		digitsToDraw == NULL ||
+		screens == NULL ||
+		backGrounds == NULL ||
+		pixel == NULL || bgTile == NULL)
+	{
+		printf("failed to allocate memory inside function determineStage, exiting now\n");
+		printf("sorry about that...\n");
+		exit(0);
+	}
 
 	gamestate->scene = 0;
 
@@ -1496,68 +1493,54 @@ void determineStage()
 	initScreens(screens);
 	initBackgrounds(backGrounds);
 
-	// loop to determine background colour for the sprites
-	// short int * cfront = gamestate->itemblocks->valPtr_F;
-	// for(int i = 0; i < (32*32); i++){
-	// 	printf("%d ",*(cfront + i));
-	// }
-	// exit(0);
-
 	int gameOn = 1;
 
-	/* initialize a pixel */
-	Pixel *pixel;
-	Pixel *block;
-
-	pixel = malloc(sizeof(Pixel));
-	block = malloc(sizeof(Pixel));
-	// memset(framebufferstruct.fptr, 0, 1);
-	clearScreen();
+	clearScreen(pixel);
 
 	while (gameOn)
 	{
 		if (gamestate->scene == 0)
 		{
-			clearScreen();
-			screenMenu(&gameOn, gamestate);
+			clearScreen(pixel);
+			screenMenu(&gameOn, gamestate, pixel);
 			initScene1(gamestate);
 		}
 		else if (gamestate->scene == 1)
 		{
-			stageNavigation(gamestate, pixel, block, alp);
+			stageNavigation(gamestate, pixel, alp, bgTile);
 			winloseCondCheck(gamestate, pixel);
 		}
 		else if (gamestate->scene == 2)
 		{
-			stageNavigation(gamestate, pixel, block, alp);
+			stageNavigation(gamestate, pixel, alp, bgTile);
 			winloseCondCheck(gamestate, pixel);
 		}
 		else if (gamestate->scene == 3)
 		{
-			stageNavigation(gamestate, pixel, block, alp);
+			stageNavigation(gamestate, pixel, alp, bgTile);
 			winloseCondCheck(gamestate, pixel);
 		}
 		else if (gamestate->scene == 4)
 		{
-			stageNavigation(gamestate, pixel, block, alp);
+			stageNavigation(gamestate, pixel, alp, bgTile);
 			winloseCondCheck(gamestate, pixel);
 		}
 		else if (gamestate->scene == 5) // player has won
 		{
-			drawWinLose(gamestate, alp);
+			drawWinLose(gamestate, alp, pixel);
 			gamestate->scene = 0;
 		}
 		else if (gamestate->scene == 7)
 		{
 			// sleep(1);
-			drawWinLose(gamestate, alp);
+			drawWinLose(gamestate, alp, pixel);
 			gamestate->scene = 0;
 		}
 	}
 
 	/* free pixel's allocated memory */
 	free(pixel);
-	free(block);
+	pixel = NULL;
 
 	freeGameStateObjects(gamestate);
 	freeDigitsToDrawObjects(digitsToDraw);
@@ -1567,6 +1550,12 @@ void determineStage()
 	free(digitsToDraw);
 	free(screens);
 	free(backGrounds);
+
+	alp = NULL;
+	gamestate = NULL;
+	digitsToDraw = NULL;
+	screens = NULL;
+	backGrounds = NULL;
 }
 
 int main()
