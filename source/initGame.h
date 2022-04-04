@@ -205,6 +205,7 @@ typedef struct
     int winCond, loseCond;
     int lives, score, timeLeft;
     int scene, sceneStatus;
+    int gameOn;
 } GameState;
 
 static int baseSpeed = 55000;

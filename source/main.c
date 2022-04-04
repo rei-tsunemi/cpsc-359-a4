@@ -209,7 +209,7 @@ void getBackGroundImage(short int *bgTile, int bgPos)
 	}
 	else if (bgPos == 3)
 	{
-		assignBackGround(bgTile, backGrounds->water);
+		assignBackGround(bgTile, backGrounds->lava);
 	}
 	else if (bgPos == 4)
 	{
@@ -558,6 +558,8 @@ void *drawBugsAtPos(void *param)
 	if (pixel == NULL || tile == NULL)
 	{
 		printf("failed to allocate in function drawBugsAPos, exiting now\n");
+		gamestate->sceneStatus = 0;
+		gamestate->gameOn = 0;
 		pthread_exit(0);
 	}
 
@@ -670,6 +672,8 @@ void *animateValuePack(void *param)
 	if (pix == NULL || tile == NULL)
 	{
 		printf("in function animateValuePack memory  alloc failed,exiting now\n");
+		gamestate->sceneStatus = 0;
+		gamestate->gameOn = 0;
 		pthread_exit(0);
 	}
 
@@ -719,6 +723,8 @@ void *timerThread(void *param)
 	if (pix == NULL)
 	{
 		printf("could not allocate memory in function timerThread, exiting now\n");
+		gamestate->sceneStatus = 0;
+		gamestate->gameOn = 0;
 		pthread_exit(0);
 	}
 
@@ -1206,7 +1212,7 @@ void drawWinLose(GameState *gs, Alphabet *alp, Pixel *pixel)
 	}
 }
 
-void screenMenu(int *game, GameState *gamestate, Pixel *pix)
+void screenMenu(GameState *gamestate, Pixel *pix)
 {
 
 	int numOfButtons = 16; // number of buttons on snes
@@ -1262,8 +1268,8 @@ void screenMenu(int *game, GameState *gamestate, Pixel *pix)
 			}
 			else if (quit == 1)
 			{
-				clearScreen();
-				(*game) = 0;
+				clearScreen(pix);
+				gamestate->gameOn = 0;
 				status = 0;
 			}
 		}
@@ -1485,24 +1491,22 @@ void determineStage()
 		exit(0);
 	}
 
-	gamestate->scene = 0;
-
 	initAlphabet(alp);
 	initDigitsToDraw(digitsToDraw);
 	initGameState(gamestate);
 	initScreens(screens);
 	initBackgrounds(backGrounds);
-
-	int gameOn = 1;
+	gamestate->scene = 0;
+	gamestate->gameOn = 1;
 
 	clearScreen(pixel);
 
-	while (gameOn)
+	while (gamestate->gameOn)
 	{
 		if (gamestate->scene == 0)
 		{
 			clearScreen(pixel);
-			screenMenu(&gameOn, gamestate, pixel);
+			screenMenu(gamestate, pixel);
 			initScene1(gamestate);
 		}
 		else if (gamestate->scene == 1)

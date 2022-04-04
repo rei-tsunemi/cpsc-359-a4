@@ -161,16 +161,37 @@ void freeGameStateObjects(GameState *gamestate)
 {
     // free everything in the gamestate object
     free(gamestate->mario);
+    gamestate->mario = NULL;
+
     free(gamestate->bugs);
+    gamestate->bugs = NULL;
+
     free(gamestate->itemblocks);
+    gamestate->itemblocks = NULL;
+
     free(gamestate->coins);
+    gamestate->coins = NULL;
+
     free(gamestate->goal);
+    gamestate->goal = NULL;
+
     free(gamestate->trees);
+    gamestate->trees = NULL;
+
     free(gamestate->bugSpots);
+    gamestate->bugSpots = NULL;
+
     free(gamestate->itemSpots);
+    gamestate->itemSpots = NULL;
+
     free(gamestate->coinSpots);
+    gamestate->coinSpots = NULL;
+
     free(gamestate->treeSpots);
+    gamestate->treeSpots = NULL;
+
     free(gamestate->spritesForScene);
+    gamestate->spritesForScene = NULL;
 }
 
 void initGameState(GameState *gamestate)
@@ -180,34 +201,79 @@ void initGameState(GameState *gamestate)
     int maxCoins = 30;
     int maxTrees = 150;
 
+    // gamestate->gameOn = 1;
+
     gamestate->spritesForScene = malloc(sizeof(SpriteCount));
+    if (gamestate->spritesForScene == NULL)
+    {
+        printf("failed to alloc for spritesForScene, exiting now\n");
+        exit(0);
+    }
 
     // init mario
     gamestate->mario = malloc(sizeof(Mario));
+    if (gamestate->mario == NULL)
+    {
+        printf("failed to alloc for mario, exiting now\n");
+        exit(0);
+    }
     initMario(gamestate->mario);
 
     // init bug image
     gamestate->bugs = malloc(sizeof(BugSprite));
+    if (gamestate->bugs == NULL)
+    {
+        printf("failed to alloc for bugs, exiting now\n");
+        exit(0);
+    }
     initBug(gamestate->bugs);
 
     // init item block image
     gamestate->itemblocks = malloc(sizeof(ItemBlock));
+    if (gamestate->itemblocks == NULL)
+    {
+        printf("failed to alloc for itemblocks, exiting now\n");
+        exit(0);
+    }
     initItemBlock(gamestate->itemblocks);
 
     // init coin image
     gamestate->coins = malloc(sizeof(Coin));
+    if (gamestate->coins == NULL)
+    {
+        printf("failed to alloc for coins, exiting now\n");
+        exit(0);
+    }
     initCoin(gamestate->coins);
 
     gamestate->goal = malloc(sizeof(GoalPost));
+    if (gamestate->goal == NULL)
+    {
+        printf("failed to alloc for goal, exiting now\n");
+        exit(0);
+    }
     initGoalPost(gamestate->goal);
 
     gamestate->trees = malloc(sizeof(Tree));
+    if (gamestate->trees == NULL)
+    {
+        printf("failed to alloc for trees, exiting now\n");
+        exit(0);
+    }
     initTrees(gamestate->trees);
 
     gamestate->bugSpots = malloc(sizeof(BugPositions) * maxBugs);
     gamestate->itemSpots = malloc(sizeof(ItemBlockPositions) * maxItemBlocks);
     gamestate->coinSpots = malloc(sizeof(CoinPositions) * maxCoins);
     gamestate->treeSpots = malloc(sizeof(TreePositions) * maxTrees);
+    if (gamestate->bugSpots == NULL ||
+        gamestate->itemSpots == NULL ||
+        gamestate->coinSpots == NULL ||
+        gamestate->treeSpots == NULL)
+    {
+        printf("failed to alloc for sprite locations, exiting now\n");
+        exit(0);
+    }
 }
 
 void initScene1(GameState *gamestate)
@@ -270,7 +336,6 @@ void initScene1(GameState *gamestate)
     int currentTree = 0;
     xPos = 480;
     yPos = 64;
-    
 
     makeLineOfTrees(xPos, yPos, &currentTree, &numOfTreesUsed, stop, 1, gamestate);
 
@@ -313,7 +378,6 @@ void initScene1(GameState *gamestate)
             (*gamestate).bg[i][j] = bg1[i][j];
         }
     }
-    
 }
 
 void initScene2(GameState *gamestate)
@@ -357,7 +421,7 @@ void initScene2(GameState *gamestate)
     yPos = 576 - 64;
     xPos = 672 - (7 * gridSize);
 
-    changeTreePos(0, xPos - (gridSize*2), yPos - (gridSize * 5), gamestate->treeSpots);
+    changeTreePos(0, xPos - (gridSize * 2), yPos - (gridSize * 5), gamestate->treeSpots);
     changeTreePos(1, xPos - (gridSize * 1), yPos, gamestate->treeSpots);
     changeTreePos(2, xPos, yPos + (gridSize * 2), gamestate->treeSpots);
     changeTreePos(3, xPos - (gridSize * 3), yPos + (gridSize * 4), gamestate->treeSpots);
@@ -400,8 +464,8 @@ void initScene3(GameState *gamestate)
     gamestate->scene = 3;
 
     gamestate->spritesForScene->bugs = 8;
-    changeBugsAtPos(0, 384, 928, 0, 42, 1, 1, gamestate->bugSpots); // stays
-    changeBugsAtPos(1, 1728, 960, 0, 35, -1, 1, gamestate->bugSpots);  // stays
+    changeBugsAtPos(0, 384, 928, 0, 42, 1, 1, gamestate->bugSpots);   // stays
+    changeBugsAtPos(1, 1728, 960, 0, 35, -1, 1, gamestate->bugSpots); // stays
     changeBugsAtPos(2, 1824, 992, 0, 14, -1, 2, gamestate->bugSpots); // stays
     changeBugsAtPos(3, 1632, 704, 0, 13, -1, 2, gamestate->bugSpots);
     changeBugsAtPos(4, 1536, 736, 0, 35, -1, 1, gamestate->bugSpots);
@@ -409,7 +473,6 @@ void initScene3(GameState *gamestate)
     changeBugsAtPos(6, 1312, 608, 0, 5, -1, 1, gamestate->bugSpots);
     changeBugsAtPos(7, 192, 96, 0, 30, 1, 2, gamestate->bugSpots);
 
-    gamestate->spritesForScene->trees = 30;
     int numOfTreesUsed = 0;
     int currentTree = 0;
     // 3 trees
@@ -429,7 +492,7 @@ void initScene3(GameState *gamestate)
     makeLineOfTrees(xPos, yPos, &currentTree, &numOfTreesUsed, stop, 0, gamestate);
     xPos = 1696;
     makeLineOfTrees(xPos, yPos, &currentTree, &numOfTreesUsed, stop, 0, gamestate);
-    
+
     // bottom line
     xPos = 864;
     yPos = 992;
@@ -442,21 +505,23 @@ void initScene3(GameState *gamestate)
     makeLineOfTrees(xPos, yPos, &currentTree, &numOfTreesUsed, stop, 0, gamestate);
 
     // last straight line  12 trees
-    // xPos = 416;
-    // yPos = 96;
-    // stop = 2;
-    // makeLineOfTrees(xPos, yPos, &currentTree, &numOfTreesUsed, stop, 0, gamestate);
-    // xPos = 992;
-    // makeLineOfTrees(xPos, yPos, &currentTree, &numOfTreesUsed, stop, 0, gamestate);
-    // yPos = 224;
-    // makeLineOfTrees(xPos, yPos, &currentTree, &numOfTreesUsed, stop, 0, gamestate);
-    // xPos = 512;
-    // makeLineOfTrees(xPos, yPos, &currentTree, &numOfTreesUsed, stop, 0, gamestate);
-    // xPos = 768;
-    // yPos = 128;
-    // makeLineOfTrees(xPos, yPos, &currentTree, &numOfTreesUsed, stop, 0, gamestate);
-    // yPos = 192;
-    // makeLineOfTrees(xPos+(3*gridSize), yPos, &currentTree, &numOfTreesUsed, stop, 0, gamestate);
+    xPos = 416;
+    yPos = 96;
+    stop = 2;
+    makeLineOfTrees(xPos, yPos, &currentTree, &numOfTreesUsed, stop, 0, gamestate);
+    xPos = 992;
+    makeLineOfTrees(xPos, yPos, &currentTree, &numOfTreesUsed, stop, 0, gamestate);
+    yPos = 224;
+    makeLineOfTrees(xPos, yPos, &currentTree, &numOfTreesUsed, stop, 0, gamestate);
+    xPos = 512;
+    makeLineOfTrees(xPos, yPos, &currentTree, &numOfTreesUsed, stop, 0, gamestate);
+    xPos = 768;
+    yPos = 128;
+    makeLineOfTrees(xPos, yPos, &currentTree, &numOfTreesUsed, stop, 0, gamestate);
+    yPos = 192;
+    makeLineOfTrees(xPos + (3 * gridSize), yPos, &currentTree, &numOfTreesUsed, stop, 0, gamestate);
+
+    gamestate->spritesForScene->trees = 42;
 
     gamestate->spritesForScene->items = 6;
     changeItemAtPos(0, 384, 832, gamestate->itemSpots);
@@ -466,7 +531,7 @@ void initScene3(GameState *gamestate)
     changeItemAtPos(4, 1824, 256, gamestate->itemSpots);
     changeItemAtPos(5, 288, 160, gamestate->itemSpots);
 
-    gamestate->spritesForScene->coins = 7; 
+    gamestate->spritesForScene->coins = 7;
     changeCoinAtPos(0, 1088, 800, gamestate->coinSpots);
     changeCoinAtPos(1, 1248, 544, gamestate->coinSpots);
     changeCoinAtPos(2, 1248, 576, gamestate->coinSpots);
@@ -474,8 +539,6 @@ void initScene3(GameState *gamestate)
     changeCoinAtPos(4, 1216, 576, gamestate->coinSpots);
     changeCoinAtPos(5, 640, 576, gamestate->coinSpots);
     changeCoinAtPos(6, 672, 576, gamestate->coinSpots);
-
-
 
     int i, j;
     for (i = 0; i < Y_DIM; i++)
@@ -562,10 +625,19 @@ void fillDigitArray(short int **digit)
 void freeDigitsToDrawObjects(DigitsToDraw *dtd)
 {
     free(dtd->livesDraw);
+    dtd->livesDraw = NULL;
+
     free(dtd->timeDraw);
+    dtd->timeDraw = NULL;
+
     free(dtd->scoreDraw);
+    dtd->scoreDraw = NULL;
+
     free(dtd->lvlDraw);
+    dtd->lvlDraw = NULL;
+
     free(dtd->digits);
+    dtd->digits = NULL;
 }
 void initDigitsToDraw(DigitsToDraw *dtd)
 {
@@ -574,6 +646,16 @@ void initDigitsToDraw(DigitsToDraw *dtd)
     dtd->scoreDraw = malloc(sizeof(DigitPosition));
     dtd->lvlDraw = malloc(sizeof(DigitPosition));
     dtd->digits = malloc(sizeof(short int *) * 10); // size of 10 because there are 10 digits
+
+    if (dtd->livesDraw == NULL ||
+        dtd->timeDraw == NULL ||
+        dtd->scoreDraw == NULL ||
+        dtd->lvlDraw == NULL ||
+        dtd->digits == NULL)
+    {
+        printf("failed to allocate for digitsToDraw, exiting now\n");
+        exit(0);
+    }
 
     // init lvl digit display
     // dtd->lvlDraw->xPos = 256;
